@@ -38,6 +38,7 @@ const DataTable = ({
   pageSize = 10,
   searchPlaceholder = "Search...",
   addButton,
+  actions = [],
 }) => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
@@ -110,26 +111,57 @@ const DataTable = ({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {addButton &&
-            (addButton.to ? (
-              <Link to={addButton.to}>
-                <Button variant="default" size="sm" className="h-9">
-                  <SquarePlus className="h-3 w-3 mr-2" />
+          <div className="flex items-center gap-2">
+            {/* Single Add Button */}
+            {addButton &&
+              (addButton.to ? (
+                <Link to={addButton.to}>
+                  <Button variant="default" className="h-9">
+                    {(addButton.icon || SquarePlus) &&
+                      (() => {
+                        const Icon = addButton.icon || SquarePlus;
+                        return <Icon className="h-3 w-3 mr-2" />;
+                      })()}
+                    {addButton.label}
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant="default"
+                  className="h-9"
+                  onClick={addButton.onClick}
+                >
+                  {(() => {
+                    const Icon = addButton.icon || SquarePlus;
+                    return <Icon className="h-3 w-3 mr-2" />;
+                  })()}
                   {addButton.label}
                 </Button>
-              </Link>
-            ) : (
-              <Button
-                variant="default"
-                size="sm"
-                className="h-9"
-                onClick={addButton.onClick}
-              >
-                <SquarePlus className="h-3 w-3 mr-2" />
-                {addButton.label}
-              </Button>
-            ))}
+              ))}
 
+            {actions.map((action, index) => {
+              const Icon = action.icon || SquarePlus;
+
+              return action.to ? (
+                <Link key={index} to={action.to}>
+                  <Button variant={action.variant || "default"} className="h-9">
+                    <Icon className="h-3 w-3 mr-2" />
+                    {action.label}
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  key={index}
+                  variant={action.variant || "default"}
+                  className="h-9"
+                  onClick={action.onClick}
+                >
+                  <Icon className="h-3 w-3 mr-2" />
+                  {action.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -175,37 +207,35 @@ const DataTable = ({
         </Table>
       </div>
 
-
-
       <div className="flex items-center justify-between gap-2">
-      <div className="flex-1 text-sm text-muted-foreground">
+        <div className="flex-1 text-sm text-muted-foreground">
           Total Records: {table.getFilteredRowModel().rows.length}
         </div>
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
 
-        <span className="text-sm">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </span>
+          <span className="text-sm">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </span>
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </div>
     </div>
   );
 };

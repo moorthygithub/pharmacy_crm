@@ -102,8 +102,6 @@ const EditCompany = () => {
     }
   };
 
-
-
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
@@ -166,7 +164,7 @@ const EditCompany = () => {
         toast.success(res?.msg || "Company updated successfully");
         queryClient.invalidateQueries(["company-list"]);
         queryClient.invalidateQueries(["company-edit", id]);
-        navigate("/company-list");
+        navigate("/home");
       } else {
         toast.error(res?.msg || "Failed to update company");
       }

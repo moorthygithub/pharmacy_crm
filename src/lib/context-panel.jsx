@@ -1,15 +1,19 @@
-import { PANEL_CHECK } from "@/constants/apiConstants";
-import { useApiMutation } from "@/hooks/useApiMutation";
-import { logout } from "@/store/auth/authSlice";
-import { setCompanyDetails, setCompanyImage } from "@/store/auth/companySlice";
-import { setShowUpdateDialog } from "@/store/auth/versionSlice";
-import { persistor } from "@/store/store";
-import { getAuthToken } from "@/utils/authToken";
-import appLogout from "@/utils/logout";
 import CryptoJS from "crypto-js";
 import { createContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { PANEL_CHECK, USERMANAGEMENT } from "@/constants/apiConstants";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { logout } from "@/store/auth/authSlice";
+import { setCompanyDetails, setCompanyImage } from "@/store/auth/companySlice";
+import { setShowUpdateDialog } from "@/store/auth/versionSlice";
+import {
+  setButtonPermissions,
+  setPagePermissions,
+} from "@/store/permissions/permissionSlice";
+import { persistor } from "@/store/store";
+import appLogout from "@/utils/logout";
 
 export const ContextPanel = createContext();
 
@@ -22,16 +26,45 @@ const AppProvider = ({ children }) => {
   const location = useLocation();
   const Logout = appLogout();
   const { trigger } = useApiMutation();
+  const { trigger: Controltrigger, loading, error } = useApiMutation();
 
-  const reduxToken = useSelector((state) => state.auth.token);
-  const token = getAuthToken(reduxToken);
+  const token = useSelector((state) => state.auth.token);
   const localVersion = useSelector((state) => state.auth?.version);
+  // const staticUsers = useSelector((state) => state.users?.users);
 
   const [isPanelUp, setIsPanelUp] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const fetchPagePermission = async () => {
+    try {
+      const res = await Controltrigger({ url: USERMANAGEMENT.pageControl });
+
+      const permissions = res?.pagePermissions || [];
+      dispatch(setPagePermissions(permissions));
+    } catch (error) {
+      console.error("error", error.messaage);
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const res = await Controltrigger({ url: USERMANAGEMENT.buttonControl });
+      dispatch(setButtonPermissions(res?.buttonPermissions || []));
+    } catch (err) {
+      console.error(err.messaage);
+    }
+  };
+
+  // const getStaticUsers = () => {
+  //   try {
+  //     const users = localStorage.getItem("allUsers");
+  //     return users ? JSON.parse(users) : [];
+  //   } catch {
+  //     return [];
+  //   }
+  // };
 
   const handleCriticalError = (msg) => {
-    console.error(msg);
+    toast.error(msg);
     dispatch(logout());
     persistor.purge();
     navigate("/maintenance");
@@ -39,7 +72,6 @@ const AppProvider = ({ children }) => {
 
   const initializeApp = async () => {
     try {
-      /** 1️⃣ ENV validation */
       if (!secretKey || !validationKey) {
         throw new Error("Missing environment variables");
       }
@@ -68,8 +100,8 @@ const AppProvider = ({ children }) => {
 
       const envRes = await trigger({ url: PANEL_CHECK.getEnvStatus });
       const computedHash = CryptoJS.MD5(validationKey).toString();
-      console.log(envRes, "envRes");
-      if (envRes?.data !== computedHash) {
+
+      if (envRes?.hashKey !== computedHash) {
         throw new Error("Environment validation failed");
       }
 
@@ -82,13 +114,18 @@ const AppProvider = ({ children }) => {
       handleCriticalError(error.message);
     }
   };
+  useEffect(() => {
+    if (!token) return;
+
+    // getStaticUsers();
+    fetchPagePermission();
+    fetchPermissions();
+  }, [token]);
 
   const pollPanelStatus = async () => {
     try {
       const res = await trigger({ url: PANEL_CHECK.getPanelStatus });
-      if (res?.message !== "Success") {
-        throw new Error();
-      }
+      if (res?.message !== "Success") throw new Error();
       setIsPanelUp(true);
     } catch {
       setIsPanelUp(false);
@@ -106,7 +143,14 @@ const AppProvider = ({ children }) => {
   if (!initialized) return null;
 
   return (
-    <ContextPanel.Provider value={{ isPanelUp }}>
+    <ContextPanel.Provider
+      value={{
+        isPanelUp,
+        fetchPagePermission,
+        fetchPermissions,
+        // getStaticUsers,
+      }}
+    >
       {children}
     </ContextPanel.Provider>
   );

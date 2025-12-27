@@ -138,7 +138,7 @@
 //         );
 //         dispatch(setCompanyDetails(res.company_details));
 
-//         navigate("/company-list", { replace: true });
+//         navigate("/home", { replace: true });
 //       } else {
 //         toast.error(res.message || "Login Failed: Unexpected response.");
 //         setIsLoading(false);

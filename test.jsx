@@ -1,223 +1,360 @@
-import React, { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+    ErrorComponent,
+    LoaderComponent,
+} from "@/components/LoaderComponent/LoaderComponent";
+import BASE_URL from "@/config/BaseUrl";
+import { ContextPanel } from "@/lib/ContextPanel";
+import { Checkbox } from "@material-tailwind/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import Page from "../dashboard/page";
 
-export default function AuthUI() {
-  const [email, setEmail] = useState("johndoe@gmail.com");
-  const [password, setPassword] = useState("••••••••");
-  const [showPassword, setShowPassword] = useState(false);
-  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
-  const [testimonialIndex, setTestimonialIndex] = useState(0);
+const ManagementDashboard = () => {
+  const { id } = useParams();
+  const userId = Number(id);
+  const queryClient = useQueryClient();
+  const { getStaticUsers, fetchPagePermission, fetchPermissions } =
+    useContext(ContextPanel);
+  const staticUsers = getStaticUsers();
+  const [buttonPermissions, setButtonPermissions] = useState([]);
+  const [pagePermissions, setPagePermissions] = useState([]);
 
-  const testimonials = [
-    {
-      quote:
-        "Search and find your dream job is now easier than ever. Just browse a job and apply if you need to.",
-      author: "Mas Parjono",
-      role: "UI Designer at Google",
+  // Fetch button permissions
+  const {
+    data: buttonControlData,
+    isLoading: isLoadingButtons,
+    isError: isErrorButtons,
+  } = useQuery({
+    queryKey: ["usercontrol"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-usercontrol`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.buttonPermissions;
     },
-    {
-      quote:
-        "Amazing platform for job hunting. Found my perfect role within weeks!",
-      author: "Sarah Chen",
-      role: "Product Manager at Meta",
-    },
-    {
-      quote: "The best job board I've ever used. Highly recommended!",
-      author: "Alex Rodriguez",
-      role: "Senior Engineer at Apple",
-    },
-  ];
+  });
 
-  const current = testimonials[testimonialIndex];
+  // Mutation for updating button permissions
+  const updateButtonPermissionMutation = useMutation({
+    mutationFn: async ({ permissionId, updatedData }) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-update-usercontrol/${permissionId}`,
+        updatedData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["usercontrol"]);
+      fetchPermissions();
+    },
+    onError: (error) => {
+      console.error("Error updating button permissions:", error);
+      setButtonPermissions(buttonControlData);
+    },
+  });
 
-  const handleNextTestimonial = () => {
-    setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+  // Mutation for updating page permissions
+  const updatePagePermissionMutation = useMutation({
+    mutationFn: async ({ permissionId, updatedData }) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/panel-update-usercontrol-new/${permissionId}`,
+        updatedData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["usercontrol-pages"]);
+      fetchPagePermission();
+    },
+    onError: (error) => {
+      console.error("Error updating page permissions:", error);
+      setPagePermissions(pageControlData);
+    },
+  });
+
+  const {
+    data: pageControlData,
+    isLoading: isLoadingPages,
+    isError: isErrorPages,
+  } = useQuery({
+    queryKey: ["usercontrol-pages"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-usercontrol-new`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.pagePermissions;
+    },
+  });
+
+  useEffect(() => {
+    if (buttonControlData) {
+      setButtonPermissions(buttonControlData);
+    }
+  }, [buttonControlData]);
+
+  useEffect(() => {
+    if (pageControlData) {
+      setPagePermissions(pageControlData);
+    }
+  }, [pageControlData]);
+
+  const user = staticUsers.find((u) => u.id === userId);
+
+  const pages = useMemo(
+    () => [...new Set(pagePermissions.map((p) => p.page))],
+    [pagePermissions]
+  );
+
+  const handleButtonPermissionChange = async (
+    button,
+    isChecked,
+    permissionId
+  ) => {
+    try {
+      const currentPermission = buttonPermissions.find(
+        (permission) => permission.id === permissionId
+      );
+      if (!currentPermission) return;
+
+      const newUserIds = isChecked
+        ? [...currentPermission.userIds, userId.toString()]
+        : currentPermission.userIds.filter((id) => id !== userId.toString());
+
+      const userIdsAsString = newUserIds.join(",");
+
+      const updatedData = {
+        pages: currentPermission.pages,
+        button: currentPermission.button,
+        status: "Active",
+        userIds: userIdsAsString,
+      };
+
+      const updatedPermissions = buttonPermissions.map((permission) => {
+        if (permission.id === permissionId) {
+          return { ...permission, userIds: newUserIds };
+        }
+        return permission;
+      });
+      setButtonPermissions(updatedPermissions);
+
+      await updateButtonPermissionMutation.mutateAsync({
+        permissionId,
+        updatedData,
+      });
+    } catch (error) {
+      console.error("Error updating button permissions:", error);
+    }
   };
 
-  const handlePrevTestimonial = () => {
-    setTestimonialIndex(
-      (prev) => (prev - 1 + testimonials.length) % testimonials.length
+  const handlePagePermissionChange = async (page, isChecked) => {
+    try {
+      const currentPermission = pagePermissions.find(
+        (permission) => permission.page === page
+      );
+      if (!currentPermission) return;
+
+      const newUserIds = isChecked
+        ? [...currentPermission.userIds, userId.toString()]
+        : currentPermission.userIds.filter((id) => id !== userId.toString());
+
+      const userIdsAsString = newUserIds.join(",");
+
+      const updatedData = {
+        page: currentPermission.page,
+        url: currentPermission.url,
+        status: "Active",
+        userIds: userIdsAsString,
+      };
+
+      const updatedPermissions = pagePermissions.map((permission) => {
+        if (permission.page === page) {
+          return { ...permission, userIds: newUserIds };
+        }
+        return permission;
+      });
+      setPagePermissions(updatedPermissions);
+
+      await updatePagePermissionMutation.mutateAsync({
+        permissionId: currentPermission.id,
+        updatedData,
+      });
+    } catch (error) {
+      console.error("Error updating page permissions:", error);
+    }
+  };
+
+  if (!user) {
+    return (
+      <Page>
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg text-red-600">No User Found</div>
+          </div>
+        </div>
+      </Page>
     );
-  };
+  }
 
+  if (isLoadingButtons || isLoadingPages) {
+    return <LoaderComponent name="user management Data" />; // ✅ Correct prop usage
+  }
+
+  // Render error state
+  if (isErrorPages || isErrorButtons) {
+    return <ErrorComponent message="Error Teuser managementam Data" />;
+  }
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-400 to-orange-400 p-4 relative">
-      {/* Subtle grid overlay */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(0deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent)",
-          backgroundSize: "50px 50px",
-        }}
-      ></div>
-
-      {/* Main Auth Card */}
-      <div className="backdrop-blur-xl bg-white/20 rounded-3xl shadow-2xl flex flex-col md:flex-row  max-w-4xl w-full relative z-10">
-        {/* Left Panel - Login Form */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-gradient-to-br from-purple-600/40 via-pink-500/30 to-orange-400/20">
-          {/* Logo */}
-          <div className="flex items-center gap-1 mb-8">
-            <img src="https://aia.in.net/crm/public/assets/images/logo/new_retina_logos.webp"></img>
-          </div>
-
-          {/* Heading */}
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-white/75 text-sm mb-8">
-            Please Enter your Account details
-          </p>
-
-          {/* Email Input */}
-          <div className="mb-6">
-            <label className="block text-white/65 text-sm font-medium mb-3">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-full bg-black/45 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-orange-300 transition shadow-inner"
-                placeholder="your@email.com"
-              />
-            </div>
-          </div>
-
-          {/* Password Input */}
-          <div className="mb-6">
-            <label className="block text-white/65 text-sm font-medium mb-3">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 rounded-full bg-black/45 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-orange-300 transition shadow-inner"
-                placeholder="••••••••"
-              />
-              <button
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition"
+    <Page>
+      <div className="container mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">{user.name}</h2>
+              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-sm capitalize ${
+                  user.user_type === 1
+                    ? "bg-red-100 text-red-800"
+                    : user.user_type === 2
+                    ? "bg-blue-100 text-blue-800"
+                    : user.user_type === 3
+                    ? "bg-green-100 text-green-800"
+                    : user.user_type === 4
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
+                {user.user_type === 1
+                  ? "User"
+                  : user.user_type === 2
+                  ? "Admin"
+                  : user.user_type === 3
+                  ? "Superadmin"
+                  : user.user_type === 4
+                  ? "Superadmins"
+                  : "N/A"}
+              </span>
             </div>
           </div>
 
-          {/* Options Row */}
-          <div className="flex items-center justify-end mb-8 text-sm">
-            <a
-              href="#"
-              className="text-orange-300 hover:text-orange-200 transition font-medium"
-            >
-              Forgot Password
-            </a>
-          </div>
+          {/* Content */}
+          <div className="p-6">
+            {pages.map((page) => {
+              const pagePermissionsForPage = pagePermissions.filter(
+                (p) => p.page === page
+              );
 
-          <button className="w-full py-3 rounded-full bg-gradient-to-r from-orange-300 to-pink-400 text-white font-semibold hover:shadow-lg hover:shadow-pink-500/50 transition duration-300 transform hover:scale-105 mb-8">
-            Sign in
-          </button>
-        </div>
+              return (
+                <div key={page} className="mb-8">
+                  {pagePermissionsForPage.map((permission) => (
+                    <div key={permission.id} className="mb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-xl font-semibold">
+                            {permission.page}
+                          </h3>
+                          {/* Display the URL here */}
+                          <p className="text-sm text-gray-600">
+                            URL: {permission.url}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">
+                            Page Access:
+                          </span>
+                          <Checkbox
+                            color="blue"
+                            checked={permission.userIds.includes(
+                              userId.toString()
+                            )}
+                            onChange={(e) =>
+                              handlePagePermissionChange(
+                                permission.page,
+                                e.target.checked
+                              )
+                            }
+                            className="h-5 w-5"
+                          />
+                        </div>
+                      </div>
 
-        <div
-          className="w-full md:w-1/2 p-8 md:p-12 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 flex flex-col justify-between relative overflow-visible"
-          style={{
-            clipPath:
-              "polygon(0 0, calc(100% - 50px) 0, calc(100% - 50px) 0, 100% 0, 100% 50px, 100% 50px, 100% 100%, 0 100%, 0 0)",
-            borderTopRightRadius: "50px",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "60px",
-              height: "60px",
-              background:
-                "linear-gradient(135deg, rgb(15, 12, 41) 0%, rgb(48, 43, 99) 50%, rgb(36, 36, 62) 100%)",
-              borderRadius: "0 0 0 60px",
-              zIndex: 20,
-            }}
-          ></div>
-          <div className="absolute bottom-20 -right-20 w-64 h-64 opacity-30 pointer-events-none">
-            <svg viewBox="0 0 100 100" className="w-full h-full">
-              {[...Array(12)].map((_, i) => (
-                <line
-                  key={i}
-                  x1="50"
-                  y1="50"
-                  x2="50"
-                  y2="5"
-                  stroke="#5B7CFA"
-                  strokeWidth="1.5"
-                  transform={`rotate(${i * 30} 50 50)`}
-                />
-              ))}
-            </svg>
-          </div>
-
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">
-              What's our Jobseekers Said.
-            </h2>
-
-            <div className="mb-8">
-              <p className="text-3xl text-white/40 mb-4">"</p>
-              <p className="text-white/90 leading-relaxed mb-8 text-lg">
-                {current.quote}
-              </p>
-            </div>
-
-            <div className="mb-8">
-              <p className="text-white font-semibold">{current.author}</p>
-              <p className="text-white/60 text-sm">{current.role}</p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 relative z-10">
-            <button
-              onClick={handlePrevTestimonial}
-              className="w-12 h-12 rounded-lg bg-orange-300 hover:bg-orange-400 text-white flex items-center justify-center transition transform hover:scale-110"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleNextTestimonial}
-              className="w-12 h-12 rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center justify-center transition transform hover:scale-110"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        <div className="absolute -bottom-10 -right-40 w- md:w-[400px] bg-white rounded-2xl rounded-br-none p-6 shadow-2xl z-[999]">
-          <h3 className="text-slate-900 font-bold mb-2">
-            Get your right job and right place apply now
-          </h3>
-
-          <p className="text-slate-600 text-sm mb-4">
-            Be among the first founders to experience the easiest way to start
-            run a business.
-          </p>
-
-          <div className="flex gap-2">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 border-2 border-white"
-                style={{ marginLeft: i > 0 ? "-12px" : "0" }}
-              />
-            ))}
+                      {/* Button Permissions */}
+                      {buttonPermissions.some((p) => p.pages === page) && (
+                        <div className="bg-gray-200 rounded-lg p-4 mt-4">
+                          <table className="w-full">
+                            <thead>
+                              <tr>
+                                <th className="text-left pb-2 font-semibold text-gray-700">
+                                  Button
+                                </th>
+                                <th className="text-left pb-2 font-semibold text-gray-700">
+                                  Access
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {buttonPermissions
+                                .filter((p) => p.pages === page)
+                                .map((permission) => (
+                                  <tr
+                                    key={permission.id}
+                                    className="border-t border-gray-200"
+                                  >
+                                    <td className="py-3 w-96">
+                                      {permission.button}
+                                    </td>
+                                    <td className="py-3">
+                                      <Checkbox
+                                        color="blue"
+                                        checked={permission.userIds.includes(
+                                          userId.toString()
+                                        )}
+                                        onChange={(e) =>
+                                          handleButtonPermissionChange(
+                                            permission.button,
+                                            e.target.checked,
+                                            permission.id
+                                          )
+                                        }
+                                        className="h-5 w-5 bg-white"
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
+    </Page>
   );
-}
+};
+
+export default ManagementDashboard;
