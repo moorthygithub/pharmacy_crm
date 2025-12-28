@@ -1,360 +1,218 @@
 import {
-    ErrorComponent,
-    LoaderComponent,
-} from "@/components/LoaderComponent/LoaderComponent";
-import BASE_URL from "@/config/BaseUrl";
-import { ContextPanel } from "@/lib/ContextPanel";
-import { Checkbox } from "@material-tailwind/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import Page from "../dashboard/page";
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useState } from "react";
 
-const ManagementDashboard = () => {
-  const { id } = useParams();
-  const userId = Number(id);
-  const queryClient = useQueryClient();
-  const { getStaticUsers, fetchPagePermission, fetchPermissions } =
-    useContext(ContextPanel);
-  const staticUsers = getStaticUsers();
-  const [buttonPermissions, setButtonPermissions] = useState([]);
-  const [pagePermissions, setPagePermissions] = useState([]);
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Search,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-  // Fetch button permissions
-  const {
-    data: buttonControlData,
-    isLoading: isLoadingButtons,
-    isError: isErrorButtons,
-  } = useQuery({
-    queryKey: ["usercontrol"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-usercontrol`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return response.data.buttonPermissions;
-    },
+const DataTable = ({
+  data = [],
+  columns = [],
+  pageSize = 10,
+  searchPlaceholder = "Search...",
+  toolbarRight,
+  expandableRow, // ✅ NEW
+}) => {
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [expandedRows, setExpandedRows] = useState({}); // ✅ NEW
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize,
   });
 
-  // Mutation for updating button permissions
-  const updateButtonPermissionMutation = useMutation({
-    mutationFn: async ({ permissionId, updatedData }) => {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `${BASE_URL}/api/panel-update-usercontrol/${permissionId}`,
-        updatedData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return response.data;
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      globalFilter,
+      pagination,
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["usercontrol"]);
-      fetchPermissions();
-    },
-    onError: (error) => {
-      console.error("Error updating button permissions:", error);
-      setButtonPermissions(buttonControlData);
-    },
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // Mutation for updating page permissions
-  const updatePagePermissionMutation = useMutation({
-    mutationFn: async ({ permissionId, updatedData }) => {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `${BASE_URL}/api/panel-update-usercontrol-new/${permissionId}`,
-        updatedData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["usercontrol-pages"]);
-      fetchPagePermission();
-    },
-    onError: (error) => {
-      console.error("Error updating page permissions:", error);
-      setPagePermissions(pageControlData);
-    },
-  });
-
-  const {
-    data: pageControlData,
-    isLoading: isLoadingPages,
-    isError: isErrorPages,
-  } = useQuery({
-    queryKey: ["usercontrol-pages"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${BASE_URL}/api/panel-fetch-usercontrol-new`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return response.data.pagePermissions;
-    },
-  });
-
-  useEffect(() => {
-    if (buttonControlData) {
-      setButtonPermissions(buttonControlData);
-    }
-  }, [buttonControlData]);
-
-  useEffect(() => {
-    if (pageControlData) {
-      setPagePermissions(pageControlData);
-    }
-  }, [pageControlData]);
-
-  const user = staticUsers.find((u) => u.id === userId);
-
-  const pages = useMemo(
-    () => [...new Set(pagePermissions.map((p) => p.page))],
-    [pagePermissions]
-  );
-
-  const handleButtonPermissionChange = async (
-    button,
-    isChecked,
-    permissionId
-  ) => {
-    try {
-      const currentPermission = buttonPermissions.find(
-        (permission) => permission.id === permissionId
-      );
-      if (!currentPermission) return;
-
-      const newUserIds = isChecked
-        ? [...currentPermission.userIds, userId.toString()]
-        : currentPermission.userIds.filter((id) => id !== userId.toString());
-
-      const userIdsAsString = newUserIds.join(",");
-
-      const updatedData = {
-        pages: currentPermission.pages,
-        button: currentPermission.button,
-        status: "Active",
-        userIds: userIdsAsString,
-      };
-
-      const updatedPermissions = buttonPermissions.map((permission) => {
-        if (permission.id === permissionId) {
-          return { ...permission, userIds: newUserIds };
-        }
-        return permission;
-      });
-      setButtonPermissions(updatedPermissions);
-
-      await updateButtonPermissionMutation.mutateAsync({
-        permissionId,
-        updatedData,
-      });
-    } catch (error) {
-      console.error("Error updating button permissions:", error);
-    }
+  const toggleRow = (rowId) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [rowId]: !prev[rowId],
+    }));
   };
 
-  const handlePagePermissionChange = async (page, isChecked) => {
-    try {
-      const currentPermission = pagePermissions.find(
-        (permission) => permission.page === page
-      );
-      if (!currentPermission) return;
-
-      const newUserIds = isChecked
-        ? [...currentPermission.userIds, userId.toString()]
-        : currentPermission.userIds.filter((id) => id !== userId.toString());
-
-      const userIdsAsString = newUserIds.join(",");
-
-      const updatedData = {
-        page: currentPermission.page,
-        url: currentPermission.url,
-        status: "Active",
-        userIds: userIdsAsString,
-      };
-
-      const updatedPermissions = pagePermissions.map((permission) => {
-        if (permission.page === page) {
-          return { ...permission, userIds: newUserIds };
-        }
-        return permission;
-      });
-      setPagePermissions(updatedPermissions);
-
-      await updatePagePermissionMutation.mutateAsync({
-        permissionId: currentPermission.id,
-        updatedData,
-      });
-    } catch (error) {
-      console.error("Error updating page permissions:", error);
-    }
-  };
-
-  if (!user) {
-    return (
-      <Page>
-        <div className="container mx-auto p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-red-600">No User Found</div>
-          </div>
-        </div>
-      </Page>
-    );
-  }
-
-  if (isLoadingButtons || isLoadingPages) {
-    return <LoaderComponent name="user management Data" />; // ✅ Correct prop usage
-  }
-
-  // Render error state
-  if (isErrorPages || isErrorButtons) {
-    return <ErrorComponent message="Error Teuser managementam Data" />;
-  }
   return (
-    <Page>
-      <div className="container mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">{user.name}</h2>
-              </div>
-              <span
-                className={`px-3 py-1 rounded-full text-sm capitalize ${
-                  user.user_type === 1
-                    ? "bg-red-100 text-red-800"
-                    : user.user_type === 2
-                    ? "bg-blue-100 text-blue-800"
-                    : user.user_type === 3
-                    ? "bg-green-100 text-green-800"
-                    : user.user_type === 4
-                    ? "bg-purple-100 text-purple-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {user.user_type === 1
-                  ? "User"
-                  : user.user_type === 2
-                  ? "Admin"
-                  : user.user_type === 3
-                  ? "Superadmin"
-                  : user.user_type === 4
-                  ? "Superadmins"
-                  : "N/A"}
-              </span>
-            </div>
-          </div>
+    <div className="space-y-3">
+      {/* 🔹 Toolbar */}
+      <div className="flex items-center justify-between py-1">
+        <div className="relative w-64">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="pl-8 h-9 text-sm"
+          />
+        </div>
 
-          {/* Content */}
-          <div className="p-6">
-            {pages.map((page) => {
-              const pagePermissionsForPage = pagePermissions.filter(
-                (p) => p.page === page
-              );
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Columns <ChevronDown className="ml-2 h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.columnDef.header || column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-              return (
-                <div key={page} className="mb-8">
-                  {pagePermissionsForPage.map((permission) => (
-                    <div key={permission.id} className="mb-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-xl font-semibold">
-                            {permission.page}
-                          </h3>
-                          {/* Display the URL here */}
-                          <p className="text-sm text-gray-600">
-                            URL: {permission.url}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">
-                            Page Access:
-                          </span>
-                          <Checkbox
-                            color="blue"
-                            checked={permission.userIds.includes(
-                              userId.toString()
-                            )}
-                            onChange={(e) =>
-                              handlePagePermissionChange(
-                                permission.page,
-                                e.target.checked
-                              )
-                            }
-                            className="h-5 w-5"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Button Permissions */}
-                      {buttonPermissions.some((p) => p.pages === page) && (
-                        <div className="bg-gray-200 rounded-lg p-4 mt-4">
-                          <table className="w-full">
-                            <thead>
-                              <tr>
-                                <th className="text-left pb-2 font-semibold text-gray-700">
-                                  Button
-                                </th>
-                                <th className="text-left pb-2 font-semibold text-gray-700">
-                                  Access
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {buttonPermissions
-                                .filter((p) => p.pages === page)
-                                .map((permission) => (
-                                  <tr
-                                    key={permission.id}
-                                    className="border-t border-gray-200"
-                                  >
-                                    <td className="py-3 w-96">
-                                      {permission.button}
-                                    </td>
-                                    <td className="py-3">
-                                      <Checkbox
-                                        color="blue"
-                                        checked={permission.userIds.includes(
-                                          userId.toString()
-                                        )}
-                                        onChange={(e) =>
-                                          handleButtonPermissionChange(
-                                            permission.button,
-                                            e.target.checked,
-                                            permission.id
-                                          )
-                                        }
-                                        className="h-5 w-5 bg-white"
-                                      />
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
+          {toolbarRight}
         </div>
       </div>
-    </Page>
+
+      {/* 🔹 Table */}
+      <div className="border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {expandableRow && <TableHead className="w-10" />}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <>
+                  {/* 🔹 Main Row */}
+                  <TableRow key={row.id}>
+                    {expandableRow && (
+                      <TableCell>
+                        <button onClick={() => toggleRow(row.id)}>
+                          {expandedRows[row.id] ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
+                      </TableCell>
+                    )}
+
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+
+                  {/* 🔹 Expanded Row */}
+                  {expandedRows[row.id] && expandableRow && (
+                    <TableRow className="bg-gray-50">
+                      <TableCell
+                        colSpan={
+                          row.getVisibleCells().length + (expandableRow ? 1 : 0)
+                        }
+                      >
+                        {expandableRow(row.original)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} className="text-center">
+                  No data found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* 🔹 Pagination */}
+      <div className="flex justify-between items-center">
+        <span className="text-sm">
+          Total Records: {table.getFilteredRowModel().rows.length}
+        </span>
+
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default ManagementDashboard;
+export default DataTable;

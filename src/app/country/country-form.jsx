@@ -1,4 +1,8 @@
-import { GroupButton } from "@/components/group-button";
+import {
+  CountryCreate,
+  CountryEdit,
+} from "@/components/buttoncontrol/button-component";
+import ApiErrorPage from "@/components/api-error/api-error";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,184 +11,212 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { COUNTRY_API } from "@/constants/apiConstants";
-import { useApiMutation } from "@/hooks/use-mutation";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
-const initialState = {
+const INITIAL_STATE = {
   country_name: "",
-  country_latitude: "",
-  country_longitude: "",
+  country_port: "",
+  country_dp: "",
+  country_da: "",
+  country_pol: "",
   country_status: "Active",
 };
 
-const CountryForm = ({ isOpen, onClose, countryId }) => {
-  const isEditMode = Boolean(countryId);
-  const [data, setData] = useState(initialState);
-  const [errors, setErrors] = useState({});
-  const { trigger: fetchCountry, loading } = useApiMutation();
-  const { trigger: submitCountry, loading: submitLoading } = useApiMutation();
-  const queryClient = useQueryClient();
+const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
+  const isEdit = Boolean(editId);
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState(INITIAL_STATE);
+  const { pathname } = useLocation();
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const {
+    trigger: fetchCountry,
+    loading: loadingData,
+    error,
+  } = useApiMutation();
+  const { trigger, loading } = useApiMutation();
 
-    if (!isEditMode) {
-      setData(initialState);
-      setErrors({});
-      return;
+  const fetchCountryData = async () => {
+    try {
+      const res = await fetchCountry({
+        url: COUNTRY_API.getById(editId),
+      });
+
+      setFormData({
+        country_name: res?.data?.country_name || "",
+        country_port: res?.data?.country_port || "",
+        country_dp: res?.data?.country_dp || "",
+        country_da: res?.data?.country_da || "",
+        country_pol: res?.data?.country_pol || "",
+        country_status: res?.data?.country_status || "Active",
+      });
+    } catch (err) {
+      toast.error(err.message || "Failed to load country");
     }
-
-    const fetchData = async () => {
-      try {
-        const res = await fetchCountry({
-          url: COUNTRY_API.byId(countryId),
-        });
-
-        setData({
-          country_name: res.data.country_name || "",
-          country_latitude: res.data.country_latitude || "",
-          country_longitude: res.data.country_longitude || "",
-          country_status: res.data.country_status || "Active",
-        });
-      } catch (err) {
-        toast.error("Failed to load country data");
-      }
-    };
-
-    fetchData();
-  }, [isOpen, countryId]);
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!data.country_name.trim()) newErrors.country_name = "Required";
-    if (!data.country_latitude) newErrors.country_latitude = "Required";
-    if (!data.country_longitude) newErrors.country_longitude = "Required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) {
+  useEffect(() => {
+    if (open && isEdit) fetchCountryData();
+  }, [open, editId, isEdit]);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    const { country_name, country_port, country_dp, country_da, country_pol } =
+      formData;
+
+    if (!country_name || !country_port) {
+      toast.error("Please fill all required fields");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("country_name", data.country_name);
-    formData.append("country_latitude", data.country_latitude);
-    formData.append("country_longitude", data.country_longitude);
-    formData.append("country_status", data.country_status);
-
     try {
-      const res = await submitCountry({
-        url: isEditMode ? `${COUNTRY_API.byId(countryId)}` : COUNTRY_API.list,
-        method: isEditMode ? "put" : "post",
+      const res = await trigger({
+        url: isEdit ? COUNTRY_API.updateById(editId) : COUNTRY_API.create,
+        method: isEdit ? "PUT" : "POST",
         data: formData,
       });
 
-      if (
-        (isEditMode && res?.code === 200) ||
-        (!isEditMode && res?.code === 201)
-      ) {
-        toast.success(res?.msg || "Saved successfully");
-        onClose();
-
-        queryClient.invalidateQueries({ queryKey: ["company-list"] });
-        queryClient.invalidateQueries({ queryKey: ["countries-dropdown"] });
+      if (res.code === 200 || res.code === 201) {
+        toast.success(
+          isEdit
+            ? "Country updated successfully"
+            : "Country created successfully"
+        );
+        setOpen(false);
+        onSuccess?.();
       } else {
-        toast.error(res?.msg || "Failed to update country");
+        toast.error(res.message || "Something went wrong");
       }
     } catch (err) {
-      toast.error("Operation failed");
+      toast.error(err?.message || "Something went wrong");
     }
   };
 
+  if (loadingData) return <LoadingBar />;
+  if (error) return <ApiErrorPage onRetry={fetchCountryData} />;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {isEdit ? (
+          <CountryEdit />
+        ) : pathname === "/master/country" ? (
+          <CountryCreate className="ml-2" />
+        ) : null}
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Edit Country" : "Create Country"}
+            {isEdit ? "Edit Country" : "Create Country"}
           </DialogTitle>
         </DialogHeader>
 
-        {loading && <LoadingBar />}
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Country Name *</label>
-
-          <Input
-            placeholder="Country name"
-            value={data.country_name}
-            onChange={(e) => setData({ ...data, country_name: e.target.value })}
-          />
-          {errors.country_name && (
-            <p className="text-xs text-red-500">{errors.country_name}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Latitude *</label>
-          <Input
-            placeholder="Latitude"
-            value={data.country_latitude}
-            onChange={(e) =>
-              setData({ ...data, country_latitude: e.target.value })
-            }
-          />
-          {errors.country_latitude && (
-            <p className="text-xs text-red-500">{errors.country_latitude}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Longitude *</label>
-
-          <Input
-            placeholder="Longitude"
-            value={data.country_longitude}
-            onChange={(e) =>
-              setData({ ...data, country_longitude: e.target.value })
-            }
-          />
-          {errors.country_longitude && (
-            <p className="text-xs text-red-500">{errors.country_longitude}</p>
-          )}
-        </div>
-
-        {isEditMode && (
-          <>
-            <label className="text-sm font-medium">Status *</label>
-
-            <GroupButton
-              className="w-fit"
-              value={data.country_status}
-              onChange={(value) => setData({ ...data, country_status: value })}
-              options={[
-                { label: "Active", value: "Active" },
-                { label: "Inactive", value: "Inactive" },
-              ]}
+        <div className="grid gap-3">
+          <div className="grid gap-1">
+            <Label>Country Name *</Label>
+            <Input
+              name="country_name"
+              value={formData.country_name}
+              onChange={handleChange}
             />
-          </>
-        )}
+          </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={submitLoading}>
-            {isEditMode ? "Update" : "Create"}
+          <div className="grid gap-1">
+            <Label>Port *</Label>
+            <Input
+              name="country_port"
+              value={formData.country_port}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label>DP </Label>
+            <Input
+              name="country_dp"
+              value={formData.country_dp}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label>DA </Label>
+            <Input
+              name="country_da"
+              value={formData.country_da}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label>POL </Label>
+            <Input
+              name="country_pol"
+              value={formData.country_pol}
+              onChange={handleChange}
+            />
+          </div>
+
+          {isEdit && (
+            <Select
+              value={formData.country_status}
+              onValueChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  country_status: value,
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : isEdit ? (
+              "Update Country"
+            ) : (
+              "Create Country"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+});
 
 export default CountryForm;

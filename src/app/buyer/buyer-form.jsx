@@ -110,18 +110,22 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
     }
 
     try {
-      await trigger({
+      const res = await trigger({
         url: isEdit ? BUYER_LIST.updateById(editId) : BUYER_LIST.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
-
-      toast.success(
-        isEdit ? "Buyer updated successfully" : "Buyer created successfully"
-      );
-
-      await queryClient.invalidateQueries(["buyer-list"]);
-      setOpen(false);
+      if (res.code == 201) {
+        toast.success(
+          res.msg || isEdit
+            ? "Buyer updated successfully"
+            : "Buyer created successfully"
+        );
+        await queryClient.invalidateQueries(["buyer-list"]);
+        setOpen(false);
+      } else {
+        toast.error(res.msg || "Something went wrong");
+      }
     } catch (error) {
       toast.error(error?.message || "Something went wrong");
     }
@@ -241,9 +245,20 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
+
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Active">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                      Active
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Inactive">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                      Inactive
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

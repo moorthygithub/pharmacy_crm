@@ -36,6 +36,31 @@ const NAVIGATION_CONFIG = [
         url: "/buyer",
         icon: Users,
       },
+      {
+        title: "Bag Type",
+        url: "/master/bag-type",
+        icon: Users,
+      },
+      {
+        title: "Bank",
+        url: "/master/bank",
+        icon: Users,
+      },
+      {
+        title: "Container Size",
+        url: "/master/containersize",
+        icon: Users,
+      },
+      {
+        title: "Country",
+        url: "/master/country",
+        icon: Users,
+      },
+      {
+        title: "Gr Code",
+        url: "/master/grcode",
+        icon: Users,
+      },
     ],
   },
 
@@ -83,35 +108,29 @@ const filterSidebarByAPI = (items, pagePermissions, userId) => {
   }, []);
 };
 
-/* =========================
-   TEAMS
-========================= */
-
-const TEAMS_CONFIG = [
-  {
-    name: "AIA",
-    logo: GalleryVerticalEnd,
-    plan: "",
-  },
-  {
-    name: "Acme Corp.",
-    logo: AudioWaveform,
-    plan: "Startup",
-  },
-  {
-    name: "Evil Corp.",
-    logo: Command,
-    plan: "Free",
-  },
-];
-
 export function AppSidebar({ ...props }) {
   const [openItem, setOpenItem] = useState(null);
   const userId = useSelector((state) => state.auth.user.id);
   const user = useSelector((state) => state.auth.user);
-  const { pagePermissions, loading } = useSelector(
-    (state) => state.permissions
-  );
+  const company = useSelector((state) => state?.company?.companyDetails);
+  const { pagePermissions } = useSelector((state) => state.permissions);
+  const TEAMS_CONFIG = [
+    {
+      name: `${company?.company_name}`,
+      logo: GalleryVerticalEnd,
+      plan: "",
+    },
+    {
+      name: "Acme Corp.",
+      logo: AudioWaveform,
+      plan: "Startup",
+    },
+    {
+      name: "Evil Corp.",
+      logo: Command,
+      plan: "Free",
+    },
+  ];
   const filteredNavMain = useMemo(() => {
     return filterSidebarByAPI(NAVIGATION_CONFIG, pagePermissions, userId);
   }, [pagePermissions, userId]);

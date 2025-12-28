@@ -1,12 +1,11 @@
+import { Button } from "@/components/ui/button";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,22 +14,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Search,
-  SquarePlus,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const DataTable = ({
   data = [],
@@ -38,7 +37,10 @@ const DataTable = ({
   pageSize = 10,
   searchPlaceholder = "Search...",
   toolbarRight,
+  expandableRow,
 }) => {
+  const [expandedRows, setExpandedRows] = useState({}); // ✅ NEW
+
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -59,6 +61,15 @@ const DataTable = ({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
+  const toggleRow = (rowId) => {
+    setExpandedRows((prev) => {
+      // if clicking same row → close it
+      if (prev[rowId]) return {};
+
+      // otherwise close all and open only this
+      return { [rowId]: true };
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -120,6 +131,8 @@ const DataTable = ({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
+                {expandableRow && <TableHead className="w-10" />}
+
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
                     {flexRender(
@@ -132,7 +145,7 @@ const DataTable = ({
             ))}
           </TableHeader>
 
-          <TableBody>
+          {/* <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
@@ -149,6 +162,56 @@ const DataTable = ({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="text-center">
+                  No data found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody> */}
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <>
+                  {/* 🔹 Main Row */}
+                  <TableRow key={row.id}>
+                    {expandableRow && (
+                      <TableCell>
+                        <button onClick={() => toggleRow(row.id)}>
+                          {expandedRows[row.id] ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
+                      </TableCell>
+                    )}
+
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+
+                  {/* 🔹 Expanded Row */}
+                  {expandedRows[row.id] && expandableRow && (
+                    <TableRow className="bg-gray-50">
+                      <TableCell
+                        colSpan={
+                          row.getVisibleCells().length + (expandableRow ? 1 : 0)
+                        }
+                      >
+                        {expandableRow(row.original)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} className="text-center">
                   No data found
                 </TableCell>
               </TableRow>
