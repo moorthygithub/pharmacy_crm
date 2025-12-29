@@ -4,7 +4,11 @@ import { RefreshCcw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const ContainerSizeToggle = ({ initialStatus, teamId: bagId, onStatusChange }) => {
+const ContainerSizeToggle = ({
+  initialStatus,
+  teamId: bagId,
+  onStatusChange,
+}) => {
   const [status, setStatus] = useState(initialStatus);
   const { trigger, loading } = useApiMutation();
   const handleToggle = async () => {
@@ -17,14 +21,14 @@ const ContainerSizeToggle = ({ initialStatus, teamId: bagId, onStatusChange }) =
         data: { containerSize_status: newStatus },
       });
 
-      setStatus(newStatus);
-      onStatusChange?.(newStatus);
-      if (res.code == 200) {
-        toast.success(res.msg || "Status Updated", {
+      if (res.code == 201) {
+        toast.success(res.message || "Status Updated", {
           description: `Container Size  changed to ${newStatus}`,
         });
+        setStatus(newStatus);
+        onStatusChange?.(newStatus);
       } else {
-        toast.error(res.msg || "Update Failed", {
+        toast.error(res.message || "Update Failed", {
           description: "Unable to update Container Size",
         });
       }

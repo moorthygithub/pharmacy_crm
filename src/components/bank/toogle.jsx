@@ -21,15 +21,15 @@ const BankStatusToggle = ({ initialStatus, bankId, onStatusChange }) => {
         data: { bank_status: newStatus },
       });
 
-      if (res?.code === 200) {
+      if (res?.code === 201) {
         setStatus(newStatus);
         onStatusChange?.(newStatus);
 
-        toast.success(res.msg || "Status Updated", {
+        toast.success(res.message || "Status Updated", {
           description: `Bank status changed to ${newStatus}`,
         });
       } else {
-        toast.error(res.msg || "Update Failed", {
+        toast.error(res.message || "Update Failed", {
           description: "Unable to update Bank status",
         });
       }

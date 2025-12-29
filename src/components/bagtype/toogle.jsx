@@ -20,14 +20,14 @@ const BagStatusToggle = ({ initialStatus, teamId: bagId, onStatusChange }) => {
         data: { bagType_status: newStatus },
       });
 
-      setStatus(newStatus);
-      onStatusChange?.(newStatus);
-      if (res.code == 200) {
-        toast.success(res.msg || "Status Updated", {
+      if (res.code == 201) {
+        setStatus(newStatus);
+        onStatusChange?.(newStatus);
+        toast.success(res.message || "Status Updated", {
           description: `Bag Type  changed to ${newStatus}`,
         });
       } else {
-        toast.error(res.msg || "Update Failed", {
+        toast.error(res.message || "Update Failed", {
           description: "Unable to update Bag Type",
         });
       }

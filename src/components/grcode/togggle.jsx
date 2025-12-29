@@ -17,16 +17,15 @@ const GrCodeStatusToggle = ({ initialStatus, grcodeId, onStatusChange }) => {
         method: "patch",
         data: { gr_code_status: newStatus },
       });
-      console.log(res, "res");
-      if (res.code === 200) {
+      if (res.code === 201) {
         setStatus(newStatus);
         onStatusChange?.(newStatus);
 
-        toast.success(res.msg || "Status Updated", {
+        toast.success(res.message || "Status Updated", {
           description: `GR Code status changed to ${newStatus}`,
         });
       } else {
-        toast.error(res.msg || "Update Failed", {
+        toast.error(res.message || "Update Failed", {
           description: "Unable to update GR Code status",
         });
       }

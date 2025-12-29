@@ -54,7 +54,7 @@ const ContainerSizeList = () => {
         data={data?.data?.data || []}
         columns={columns}
         pageSize={10}
-        searchPlaceholder="Search buyer..."
+        searchPlaceholder="Search container size..."
         toolbarRight={
           <>
             <ContainerSizeForm />

@@ -27,7 +27,10 @@ const AppProvider = ({ children }) => {
   const Logout = appLogout();
   const { trigger } = useApiMutation();
   const { trigger: Controltrigger, loading, error } = useApiMutation();
-
+  const company = useSelector(
+    (state) => state?.company?.companyDetails?.company_name
+  );
+  // console.log(company, "company in contecxt");
   const token = useSelector((state) => state.auth.token);
   const localVersion = useSelector((state) => state.auth?.version);
   // const staticUsers = useSelector((state) => state.users?.users);
@@ -82,12 +85,16 @@ const AppProvider = ({ children }) => {
       }
 
       setIsPanelUp(true);
+      console.log(panelRes);
+      if (panelRes?.code == 201) {
+        console.log(panelRes?.company_detils, "panelRes?.company_detils)");
 
-      if (panelRes?.code === 201) {
-        dispatch(setCompanyDetails(panelRes.company_detils));
-        dispatch(setCompanyImage(panelRes.company_image));
+        dispatch(setCompanyDetails(panelRes?.company_detils));
+
+        // dispatch(setCompanyImage(panelRes.company_image));
       }
 
+      console.log(company, "company");
       const serverVersion = panelRes?.version?.version_panel;
       if (token) {
         dispatch(

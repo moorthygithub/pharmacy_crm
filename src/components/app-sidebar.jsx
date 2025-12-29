@@ -112,11 +112,13 @@ export function AppSidebar({ ...props }) {
   const [openItem, setOpenItem] = useState(null);
   const userId = useSelector((state) => state.auth.user.id);
   const user = useSelector((state) => state.auth.user);
-  const company = useSelector((state) => state?.company?.companyDetails);
+  const company = useSelector(
+    (state) => state?.company?.companyDetails?.company_name
+  );
   const { pagePermissions } = useSelector((state) => state.permissions);
   const TEAMS_CONFIG = [
     {
-      name: `${company?.company_name}`,
+      name: company,
       logo: GalleryVerticalEnd,
       plan: "",
     },

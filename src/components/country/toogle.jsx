@@ -16,13 +16,15 @@ const CountryStatusToggle = ({ countryId, initialStatus, onStatusChange }) => {
         method: "PATCH",
         data: { country_status: newStatus },
       });
-
-      if (res.code === 200) {
+      if (res.code === 201) {
         setStatus(newStatus);
+
         onStatusChange?.();
-        toast.success(`Status updated to ${newStatus}`);
+        toast.success(res.message || "Status Updated", {
+          description: `Country  changed to ${newStatus}`,
+        });
       } else {
-        toast.error(res.msg || "Failed to update status");
+        toast.error(res.message || "Failed to update status");
       }
     } catch (err) {
       toast.error(err.message || "Failed to update status");

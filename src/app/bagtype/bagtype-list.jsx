@@ -55,7 +55,7 @@ const BagTypeList = () => {
         data={data?.data?.data || []}
         columns={columns}
         pageSize={10}
-        searchPlaceholder="Search buyer..."
+        searchPlaceholder="Search bag..."
         toolbarRight={
           <>
             <BagTypeForm />

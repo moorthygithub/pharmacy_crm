@@ -1,11 +1,11 @@
-import React, { useState } from "react";
 import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
+import CountryStatusToggle from "@/components/country/toogle";
 import LoadingBar from "@/components/loader/loading-bar";
 import { COUNTRY_API } from "@/constants/apiConstants";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
+import { useState } from "react";
 import CountryForm from "./country-form";
-import CountryStatusToggle from "@/components/company/toogle";
 
 const CountryList = () => {
   const { data, isLoading, isError, refetch } = useGetApiMutation({
