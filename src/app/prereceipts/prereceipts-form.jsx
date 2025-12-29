@@ -1,62 +1,56 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import ApiErrorPage from "@/components/api-error/api-error";
 import {
-  GRCodeCreate,
-  GRCodeEdit,
+    PreRecepitCreate,
+    PreRecepitEdit
 } from "@/components/buttoncontrol/button-component";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { GRCODE_API } from "@/constants/apiConstants";
+import { PRERECEIPTS_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 const INITIAL_STATE = {
-  product_name: "",
-  gr_code_des: "",
-  gr_code_status: "Active",
+  prereceipts_name: "",
+  prereceipts_status: "Active",
 };
-
-const GrCodeForm = ({ editId = null, onSuccess }) => {
+const PreReceiptsForm = ({ editId = null, onSuccess }) => {
   const isEdit = Boolean(editId);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_STATE);
-
-  const queryClient = useQueryClient();
-
   const { trigger, loading } = useApiMutation();
   const {
-    trigger: fetchGRCODE,
+    trigger: fetchPreRecepits,
     loading: loadingData,
     error,
   } = useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchGRCODE({ url: GRCODE_API.getById(editId) });
+      const res = await fetchPreRecepits({
+        url: PRERECEIPTS_API.getById(editId),
+      });
       setFormData({
-        product_name: res?.data?.product_name || "",
-        gr_code_des: res?.data?.gr_code_des || "",
-        gr_code_status: res?.data?.gr_code_status || "Active",
+        prereceipts_name: res?.data?.prereceipts_name || "",
+        prereceipts_status: res?.data?.prereceipts_status || "Active",
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load Gr Code");
+      toast.error(err.message || "Failed to load Pre Recepits");
     }
   };
 
@@ -69,14 +63,16 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
   }, [open, editId]);
 
   const handleSubmit = async () => {
-    if (!formData.product_name.trim() || !formData.gr_code_des.trim()) {
+    if (!formData.prereceipts_name.trim()) {
       toast.error("Please fill all required fields");
       return;
     }
 
     try {
       const res = await trigger({
-        url: isEdit ? GRCODE_API.updateById(editId) : GRCODE_API.create,
+        url: isEdit
+          ? PRERECEIPTS_API.updateById(editId)
+          : PRERECEIPTS_API.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
@@ -84,8 +80,8 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
       if (res.code === 201) {
         toast.success(
           res.message || isEdit
-            ? "Gr Code updated successfully"
-            : "Gr Code created successfully"
+            ? "Pre Recepits updated successfully"
+            : "Pre Recepits created successfully"
         );
         setOpen(false);
         onSuccess?.();
@@ -104,8 +100,8 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
       {loadingData && <LoadingBar />}
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
-          {!isEdit && <GRCodeCreate className="ml-2" />}
-          {isEdit && <GRCodeEdit />}
+          {!isEdit && <PreRecepitCreate className="ml-2" />}
+          {isEdit && <PreRecepitEdit />}
         </div>
       </PopoverTrigger>
 
@@ -113,41 +109,34 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
         <div className="grid gap-4">
           <div className="space-y-1">
             <h4 className="font-medium leading-none">
-              {isEdit ? "Edit Gr Code" : "Create Gr Code"}
+              {isEdit ? "Edit Pre Recepits" : "Create Pre Recepits"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter Gr Code details
+              Enter Pre Recepits details
             </p>
           </div>
 
           <div className="grid gap-2">
             <Input
-              placeholder="Product Name"
-              value={formData.product_name}
+              placeholder="Name"
+              value={formData.prereceipts_name}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  product_name: e.target.value,
+                  prereceipts_name: e.target.value,
                 }))
               }
               disabled={loadingData}
             />
-            <Textarea
-              placeholder="Description"
-              value={formData.gr_code_des}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  gr_code_des: e.target.value,
-                }))
-              }
-              disabled={loadingData}
-            />
+
             {isEdit && (
               <Select
-                value={formData.gr_code_status || ""}
+                value={formData.prereceipts_status || ""}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, gr_code_status: value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    prereceipts_status: value,
+                  }))
                 }
               >
                 <SelectTrigger>
@@ -175,9 +164,9 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
                 </>
               ) : isEdit ? (
-                "Update Gr Code"
+                "Update Pre Recepits"
               ) : (
-                "Create Gr Code"
+                "Create Pre Recepits"
               )}
             </Button>
           </div>
@@ -187,4 +176,4 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
   );
 };
 
-export default GrCodeForm;
+export default PreReceiptsForm;

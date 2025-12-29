@@ -98,10 +98,18 @@ export const PAYMENTTERM_API = {
   updateStatus: (id) => `/paymentTermss/${id}/status`,
 };
 export const PORT_API = {
-  getlist: "/portofloadings",
-  create: "/portofloadings",
+  getlist: "/portofloading",
+  create: "/portofloading",
   active: "activePortofLoadings",
-  getById: (id) => `/portofloadings/${id}`,
-  updateById: (id) => `/portofloadings/${id}`,
+  getById: (id) => `/portofloading/${id}`,
+  updateById: (id) => `/portofloading/${id}`,
   updateStatus: (id) => `/portofloadings/${id}/status`,
+};
+export const PRERECEIPTS_API = {
+  getlist: "/prereceipts",
+  create: "/prereceipts",
+  active: "activePrereceiptss",
+  getById: (id) => `/prereceipts/${id}`,
+  updateById: (id) => `/prereceipts/${id}`,
+  updateStatus: (id) => `/prereceiptss/${id}/status`,
 };

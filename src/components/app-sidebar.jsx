@@ -76,6 +76,16 @@ const NAVIGATION_CONFIG = [
         url: "/master/payment-term",
         icon: Users,
       },
+      {
+        title: "Port of Loading",
+        url: "/master/port-of-loading",
+        icon: Users,
+      },
+      {
+        title: "Pre Recepit",
+        url: "/master/pre-recepit",
+        icon: Users,
+      },
     ],
   },
 

@@ -1,14 +1,14 @@
 import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
+import ToggleStatus from "@/components/common/status-toggle";
 import LoadingBar from "@/components/loader/loading-bar";
-import { PORT_API } from "@/constants/apiConstants";
+import { PRERECEIPTS_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
-import PortofLoadingForm from "./portofloading-form";
-import ToggleStatus from "@/components/common/status-toggle";
+import PreReceiptsForm from "./prereceipts-form";
 
-const PortofList = () => {
+const PreRecepitList = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -22,8 +22,8 @@ const PortofList = () => {
     [pageIndex, pageSize, debouncedSearch]
   );
   const { data, isLoading, isError, refetch } = useGetApiMutation({
-    url: PORT_API.getlist,
-    queryKey: ["portofloading-list", pageIndex],
+    url: PRERECEIPTS_API.getlist,
+    queryKey: ["prerecepits-list", pageIndex],
     params,
   });
 
@@ -31,20 +31,17 @@ const PortofList = () => {
 
   const columns = [
     {
-      header: "Port of Loading",
-      accessorKey: "portofLoading",
+      header: "Name",
+      accessorKey: "prereceipts_name",
     },
-    {
-      header: "Loading Country",
-      accessorKey: "portofLoadingCountry",
-    },
+
     {
       header: "Status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.portofLoading_status}
-          apiUrl={PORT_API.updateStatus(row.original.id)}
-          payloadKey="portofLoading_status"
+          initialStatus={row.original.prereceipts_status}
+          apiUrl={PRERECEIPTS_API.updateStatus(row.original.id)}
+          payloadKey="prereceipts_status"
           onSuccess={refetch}
         />
       ),
@@ -52,7 +49,7 @@ const PortofList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <PortofLoadingForm editId={row.original.id} onSuccess={refetch} />
+        <PreReceiptsForm editId={row.original.id} onSuccess={refetch} />
       ),
     },
   ];
@@ -66,8 +63,8 @@ const PortofList = () => {
         data={data?.data?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search port of loading..."
-        toolbarRight={<PortofLoadingForm onSuccess={refetch} />}
+        searchPlaceholder="Search prerecepits..."
+        toolbarRight={<PreReceiptsForm onSuccess={refetch} />}
         serverPagination={{
           pageIndex,
           pageCount: apiData?.last_page ?? 1,
@@ -81,4 +78,4 @@ const PortofList = () => {
   );
 };
 
-export default PortofList;
+export default PreRecepitList;

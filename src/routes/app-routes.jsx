@@ -26,6 +26,8 @@ import { Route, Routes } from "react-router-dom";
 import AuthRoute from "./auth-route";
 import ProtectedRoute from "./protected-route";
 import PaymentTermList from "@/app/payementterm/paymentterm-list";
+import PortofList from "@/app/portofloading/portofloading-list";
+import PreRecepitList from "@/app/prereceipts/prereceipts-list";
 
 function AppRoutes() {
   return (
@@ -178,6 +180,22 @@ function AppRoutes() {
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PaymentTermList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/port-of-loading"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <PortofList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/pre-recepit"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <PreRecepitList />
               </Suspense>
             }
           />

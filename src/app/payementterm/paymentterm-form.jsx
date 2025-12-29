@@ -223,8 +223,18 @@ const PaymentTermForm = React.memo(function PaymentTermForm({ editId }) {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Active">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                      Active
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Inactive">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                      Inactive
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </>

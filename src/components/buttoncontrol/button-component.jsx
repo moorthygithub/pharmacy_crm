@@ -419,6 +419,102 @@ export const PaymentTermEdit = forwardRef(({ onClick, className }, ref) => {
 });
 
 PaymentTermEdit.page = "Payment Term";
+/////// MASTER – Port of Loading
+export const PortofLoadingCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (
+    !checkPermission(String(userId), "PortofLoadingCreate", buttonPermissions)
+  ) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Port of Loading
+    </Button>
+  );
+});
+
+PortofLoadingCreate.page = "Port of Loading";
+
+/////// MASTER – PortofLoading
+export const PortofLoadingEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (
+    !checkPermission(String(userId), "PortofLoadingEdit", buttonPermissions)
+  ) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+PortofLoadingEdit.page = "Port of Loading";
+/////// MASTER – Port of Loading
+export const PreRecepitCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PreRecepitCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Pre Recepit
+    </Button>
+  );
+});
+
+PreRecepitCreate.page = "Pre Recepit";
+
+/////// MASTER – PortofLoading
+export const PreRecepitEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PreRecepitEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+PreRecepitEdit.page = "Pre Recepit";
 export default {
   BuyerCreate,
   EditBuyer,
@@ -438,4 +534,8 @@ export default {
   OrderTypeEdit,
   PaymentTermCreate,
   PaymentTermEdit,
+  PortofLoadingCreate,
+  PortofLoadingEdit,
+  PreRecepitCreate,
+  PreRecepitEdit,
 };

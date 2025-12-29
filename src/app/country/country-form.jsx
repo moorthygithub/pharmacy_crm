@@ -80,7 +80,18 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
       [e.target.name]: e.target.value,
     }));
   };
+  const handleNumberChange = (e) => {
+    const { name, value } = e.target;
 
+    if (value === "") {
+      setFormData({ ...formData, [name]: "" });
+      return;
+    }
+
+    if (/^\d*\.?\d*$/.test(value)) {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
   const handleSubmit = async () => {
     const { country_name, country_port, country_dp, country_da, country_pol } =
       formData;
@@ -157,7 +168,7 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
             <Input
               name="country_dp"
               value={formData.country_dp}
-              onChange={handleChange}
+              onChange={handleNumberChange}
             />
           </div>
 
@@ -166,7 +177,7 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
             <Input
               name="country_da"
               value={formData.country_da}
-              onChange={handleChange}
+              onChange={handleNumberChange}
             />
           </div>
 
@@ -175,7 +186,7 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
             <Input
               name="country_pol"
               value={formData.country_pol}
-              onChange={handleChange}
+              onChange={handleNumberChange}
             />
           </div>
 
@@ -193,8 +204,18 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Active">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                    Active
+                  </div>
+                </SelectItem>
+                <SelectItem value="Inactive">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                    Inactive
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           )}

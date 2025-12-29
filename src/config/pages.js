@@ -18,6 +18,8 @@ export const sidebarData = {
     { name: "Marking", url: "/master/marking" },
     { name: "Order Type", url: "/master/order-type" },
     { name: "Payment Term", url: "/master/payment-term" },
+    { name: "Port of Loading", url: "/master/port-of-loading" },
+    { name: "Pre Recepit", url: "/master/pre-recepit" },
   ],
   userManagement: [
     { name: "User Management", url: "/userManagement" },
