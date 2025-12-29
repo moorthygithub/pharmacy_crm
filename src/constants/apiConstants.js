@@ -1,3 +1,21 @@
+export const LOGOUT = {
+  logout: "/panel-logout",
+};
+export const FORGOTPASSWORD = {
+  sendPasswordReset: "/panel-send-password",
+};
+export const LOGIN = {
+  postLogin: "/panel-login",
+};
+export const PANEL_CHECK = {
+  getPanelStatus: "/panel-check-status",
+  getEnvStatus: "/panel-fetch-dotenv",
+};
+export const PROFILE = {
+  getlist: "/panel-fetch-profile",
+  chnagepassword: "/change-password",
+  updateById: `/panel-update-profile`,
+};
 export const USERTYPE = {
   getlist: "/panel-fetch-usertype",
   getById: (id) => `/panel-fetch-usertype-by-id/${id}`,
@@ -16,13 +34,7 @@ export const TEAM_API = {
   updatePageById: (id) => `/panel-update-usercontrol-new/${id}`,
   updateStatus: (id) => `/panel-update-team-status/${id}`,
 };
-export const LOGIN = {
-  postLogin: "/panel-login",
-};
-export const PANEL_CHECK = {
-  getPanelStatus: "/panel-check-status",
-  getEnvStatus: "/panel-fetch-dotenv",
-};
+
 export const BUYER_LIST = {
   getlist: "/buyer",
   create: "/buyer",
@@ -30,12 +42,7 @@ export const BUYER_LIST = {
   updateById: (id) => `/buyer/${id}`,
   getEnvStatus: "/panel-fetch-dotenv",
 };
-export const PORT = {
-  getlist: "/activePort",
-};
-export const COUNTRY = {
-  getlist: "/activeCountrys",
-};
+
 export const BAG_API = {
   getlist: "/bagType",
   create: "/bagType",
@@ -60,6 +67,7 @@ export const CONTAINERSIZE_API = {
 export const COUNTRY_API = {
   getlist: "/country",
   create: "/country",
+  active: "/activeCountrys",
   getById: (id) => `/country/${id}`,
   updateById: (id) => `/country/${id}`,
   updateStatus: (id) => `/countrys/${id}/status`,
@@ -70,4 +78,41 @@ export const GRCODE_API = {
   getById: (id) => `/grcode/${id}`,
   updateById: (id) => `/grcode/${id}`,
   updateStatus: (id) => `/grcodes/${id}/status`,
+};
+export const MARKING_API = {
+  getlist: "/marking",
+  create: "/marking",
+  getById: (id) => `/marking/${id}`,
+  updateById: (id) => `/marking/${id}`,
+  updateStatus: (id) => `/markings/${id}/status`,
+};
+export const ORDERTYPE_API = {
+  getlist: "/orderType",
+  create: "/orderType",
+  getById: (id) => `/orderType/${id}`,
+  updateById: (id) => `/orderType/${id}`,
+  updateStatus: (id) => `/orderTypes/${id}/status`,
+};
+export const PAYMENTTERM_API = {
+  getlist: "/paymentTerms",
+  create: "/paymentTerms",
+  getById: (id) => `/paymentTerms/${id}`,
+  updateById: (id) => `/paymentTerms/${id}`,
+  updateStatus: (id) => `/paymentTermss/${id}/status`,
+};
+export const PORT_API = {
+  getlist: "/portofloading",
+  create: "/portofloading",
+  active: "activePortofLoadings",
+  getById: (id) => `/portofloading/${id}`,
+  updateById: (id) => `/portofloading/${id}`,
+  updateStatus: (id) => `/portofloadings/${id}/status`,
+};
+export const PRERECEIPTS_API = {
+  getlist: "/prereceipts",
+  create: "/prereceipts",
+  active: "activePrereceiptss",
+  getById: (id) => `/prereceipts/${id}`,
+  updateById: (id) => `/prereceipts/${id}`,
+  updateStatus: (id) => `/prereceiptss/${id}/status`,
 };

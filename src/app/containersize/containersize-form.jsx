@@ -7,21 +7,21 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 
 import {
-    ContainerSizeCreate,
-    ContainerSizeEdit,
+  ContainerSizeCreate,
+  ContainerSizeEdit,
 } from "@/components/buttoncontrol/button-component";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { CONTAINERSIZE_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -40,11 +40,12 @@ const ContainerSizeForm = ({ editId = null }) => {
   const { pathname } = useLocation();
 
   const { trigger, loading } = useApiMutation();
-  const { trigger: fetchBagType, loading: loadingData } = useApiMutation();
+  const { trigger: fetchContainerSize, loading: loadingData } =
+    useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchBagType({
+      const res = await fetchContainerSize({
         url: CONTAINERSIZE_API.getById(editId),
       });
 
@@ -89,7 +90,7 @@ const ContainerSizeForm = ({ editId = null }) => {
             ? "Container Size updated successfully"
             : "Container Size updated successfully"
         );
-        await queryClient.invalidateQueries(["bag-type-list"]);
+        await queryClient.invalidateQueries(["containersize-list"]);
         setOpen(false);
       } else {
         toast.error(res.msg || "Something went wrong");
@@ -130,7 +131,7 @@ const ContainerSizeForm = ({ editId = null }) => {
               {isEdit ? "Edit Container Size" : "Create Container Size"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter bag type details
+              Enter container size details
             </p>
           </div>
 

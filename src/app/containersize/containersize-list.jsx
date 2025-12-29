@@ -4,10 +4,24 @@ import LoadingBar from "@/components/loader/loading-bar";
 import { CONTAINERSIZE_API } from "@/constants/apiConstants";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 
-import ContainerSizeToggle from "@/components/containersize/toogle";
+import ToggleStatus from "@/components/common/status-toggle";
+import useDebounce from "@/hooks/useDebounce";
+import { useMemo, useState } from "react";
 import ContainerSizeForm from "./containersize-form";
 
 const ContainerSizeList = () => {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
+  const params = useMemo(
+    () => ({
+      page: pageIndex + 1,
+      per_page: pageSize,
+      ...(debouncedSearch?.trim() && { search: debouncedSearch.trim() }),
+    }),
+    [pageIndex, pageSize, debouncedSearch]
+  );
   const {
     data: data,
     isLoading,
@@ -15,9 +29,10 @@ const ContainerSizeList = () => {
     refetch,
   } = useGetApiMutation({
     url: CONTAINERSIZE_API.getlist,
-    queryKey: ["containersize-list"],
+    queryKey: ["containersize-list", pageIndex],
+    params,
   });
-
+  const apiData = data?.data;
   const columns = [
     {
       header: "Container Size",
@@ -28,10 +43,11 @@ const ContainerSizeList = () => {
       header: "Status",
       accessorKey: "containerSize_status",
       cell: ({ row }) => (
-        <ContainerSizeToggle
+        <ToggleStatus
           initialStatus={row.original.containerSize_status}
-          teamId={row.original.id}
-          onStatusChange={refetch}
+          apiUrl={CONTAINERSIZE_API.updateStatus(row.original.id)}
+          payloadKey="containerSize_status"
+          onSuccess={refetch}
         />
       ),
     },
@@ -45,21 +61,26 @@ const ContainerSizeList = () => {
     },
   ];
 
-  if (isLoading) return <LoadingBar />;
   if (isError) return <ApiErrorPage onRetry={refetch} />;
 
   return (
     <>
+      {isLoading && <LoadingBar />}
+
       <DataTable
-        data={data?.data?.data || []}
+        data={apiData?.data || []}
         columns={columns}
-        pageSize={10}
-        searchPlaceholder="Search buyer..."
-        toolbarRight={
-          <>
-            <ContainerSizeForm />
-          </>
-        }
+        pageSize={pageSize}
+        searchPlaceholder="Search container size..."
+        toolbarRight={<ContainerSizeForm />}
+        serverPagination={{
+          pageIndex,
+          pageCount: apiData?.last_page ?? 1,
+          total: apiData?.total ?? 0,
+          onPageChange: setPageIndex,
+          onPageSizeChange: setPageSize,
+          onSearch: setSearch,
+        }}
       />
     </>
   );

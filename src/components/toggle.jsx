@@ -1,41 +1,37 @@
+import { GRCODE_API } from "@/constants/apiConstants";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { RefreshCcw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { BANK_API } from "@/constants/apiConstants";
-import { useApiMutation } from "@/hooks/useApiMutation";
-
-const BankStatusToggle = ({ initialStatus, bankId, onStatusChange }) => {
-  console.log(initialStatus);
-
+const GrCodeStatusToggle = ({ initialStatus, grcodeId, onStatusChange }) => {
   const [status, setStatus] = useState(initialStatus);
   const { trigger, loading } = useApiMutation();
 
   const handleToggle = async () => {
     const newStatus = status === "Active" ? "Inactive" : "Active";
-
+    console.log(newStatus, "newStatus");
     try {
       const res = await trigger({
-        url: BANK_API.updateStatus(bankId),
-        method: "PATCH",
-        data: { bank_status: newStatus },
+        url: GRCODE_API.updateStatus(grcodeId),
+        method: "patch",
+        data: { gr_code_status: newStatus },
       });
-
-      if (res?.code === 200) {
+      if (res.code === 201) {
         setStatus(newStatus);
         onStatusChange?.(newStatus);
 
-        toast.success(res.msg || "Status Updated", {
-          description: `Bank status changed to ${newStatus}`,
+        toast.success(res.message || "Status Updated", {
+          description: `GR Code status changed to ${newStatus}`,
         });
       } else {
-        toast.error(res.msg || "Update Failed", {
-          description: "Unable to update Bank status",
+        toast.error(res.message || "Update Failed", {
+          description: "Unable to update GR Code status",
         });
       }
     } catch (error) {
       toast.error(error.message || "Update Failed", {
-        description: "Unable to update Bank status",
+        description: "Unable to update GR Code status",
       });
     }
   };
@@ -57,4 +53,4 @@ const BankStatusToggle = ({ initialStatus, bankId, onStatusChange }) => {
   );
 };
 
-export default BankStatusToggle;
+export default GrCodeStatusToggle;

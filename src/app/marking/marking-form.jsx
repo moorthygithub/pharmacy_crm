@@ -1,14 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-
-import ApiErrorPage from "@/components/api-error/api-error";
 import {
-  GRCodeCreate,
-  GRCodeEdit,
+  MarkingCreate,
+  MarkingEdit
 } from "@/components/buttoncontrol/button-component";
-import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,40 +16,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { GRCODE_API } from "@/constants/apiConstants";
+import { MARKING_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from "sonner";
 const INITIAL_STATE = {
-  product_name: "",
-  gr_code_des: "",
-  gr_code_status: "Active",
+  marking: "",
+  marking_status: "Active",
 };
-
-const GrCodeForm = ({ editId = null, onSuccess }) => {
+const MarkingForm = ({ editId = null }) => {
   const isEdit = Boolean(editId);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_STATE);
 
   const queryClient = useQueryClient();
+  const { pathname } = useLocation();
 
   const { trigger, loading } = useApiMutation();
-  const {
-    trigger: fetchGRCODE,
-    loading: loadingData,
-    error,
-  } = useApiMutation();
+  const { trigger: fetchMarking, loading: loadingData } = useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchGRCODE({ url: GRCODE_API.getById(editId) });
+      const res = await fetchMarking({
+        url: MARKING_API.getById(editId),
+      });
+
       setFormData({
-        product_name: res?.data?.product_name || "",
-        gr_code_des: res?.data?.gr_code_des || "",
-        gr_code_status: res?.data?.gr_code_status || "Active",
+        marking: res?.data?.marking || "",
+        marking_status: res?.data?.marking_status || "",
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load Gr Code");
+      toast.error(err.message || "Failed to load Marking");
     }
   };
 
@@ -65,47 +58,62 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
       setFormData(INITIAL_STATE);
       return;
     }
-    if (open && isEdit) fetchData();
+
+    if (open && isEdit) {
+      fetchData();
+    }
   }, [open, editId]);
 
   const handleSubmit = async () => {
-    if (!formData.product_name.trim() || !formData.gr_code_des.trim()) {
-      toast.error("Please fill all required fields");
+    if (!formData.marking.trim()) {
+      toast.error("Marking is required");
       return;
     }
 
     try {
       const res = await trigger({
-        url: isEdit ? GRCODE_API.updateById(editId) : GRCODE_API.create,
+        url: isEdit ? MARKING_API.updateById(editId) : MARKING_API.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
 
-      if (res.code === 201) {
+      if (res.code == 201) {
         toast.success(
-          res.message || isEdit
-            ? "Gr Code updated successfully"
-            : "Gr Code created successfully"
+          res.msg || isEdit
+            ? "Marking updated successfully"
+            : "Marking updated successfully"
         );
+        await queryClient.invalidateQueries(["marking-list"]);
         setOpen(false);
-        onSuccess?.();
       } else {
-        toast.error(res.message || "Something went wrong");
+        toast.error(res.msg || "Something went wrong");
       }
-    } catch (err) {
-      toast.error(err?.message || "Something went wrong");
+    } catch (error) {
+      toast.error(error?.message || "Something went wrong");
     }
   };
 
-  if (error) return <ApiErrorPage onRetry={fetchData} />;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {loadingData && <LoadingBar />}
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
-          {!isEdit && <GRCodeCreate className="ml-2" />}
-          {isEdit && <GRCodeEdit />}
+          {!isEdit && (
+            <MarkingCreate
+              onClick={() => setOpen(true)}
+              className="ml-2"
+            />
+          )}
+
+          {isEdit && <MarkingEdit onClick={() => setOpen(true)} />}
+
+          {pathname === "/create-contract" && (
+            <p
+              className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer"
+              onClick={() => setOpen(true)}
+            >
+              {isEdit ? "Edit Marking" : "Create Marking"}
+            </p>
+          )}
         </div>
       </PopoverTrigger>
 
@@ -113,41 +121,33 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
         <div className="grid gap-4">
           <div className="space-y-1">
             <h4 className="font-medium leading-none">
-              {isEdit ? "Edit Gr Code" : "Create Gr Code"}
+              {isEdit ? "Edit Marking" : "Create Marking"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter Gr Code details
+              Enter marking details
             </p>
           </div>
 
           <div className="grid gap-2">
             <Input
-              placeholder="Product Name"
-              value={formData.product_name}
+              placeholder="Enter Marking"
+              value={formData.marking}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  product_name: e.target.value,
-                }))
-              }
-              disabled={loadingData}
-            />
-            <Textarea
-              placeholder="Description"
-              value={formData.gr_code_des}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  gr_code_des: e.target.value,
+                  marking: e.target.value,
                 }))
               }
               disabled={loadingData}
             />
             {isEdit && (
               <Select
-                value={formData.gr_code_status || ""}
+                value={formData.marking_status || ""}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, gr_code_status: value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    marking_status: value,
+                  }))
                 }
               >
                 <SelectTrigger>
@@ -172,12 +172,13 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
             <Button onClick={handleSubmit} disabled={loading || loadingData}>
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
                 </>
               ) : isEdit ? (
-                "Update Gr Code"
+                "Update Marking"
               ) : (
-                "Create Gr Code"
+                "Create Marking"
               )}
             </Button>
           </div>
@@ -187,4 +188,4 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
   );
 };
 
-export default GrCodeForm;
+export default MarkingForm;

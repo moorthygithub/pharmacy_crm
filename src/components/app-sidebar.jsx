@@ -33,7 +33,7 @@ const NAVIGATION_CONFIG = [
     items: [
       {
         title: "Buyer",
-        url: "/buyer",
+        url: "/master/buyer",
         icon: Users,
       },
       {
@@ -61,6 +61,31 @@ const NAVIGATION_CONFIG = [
         url: "/master/grcode",
         icon: Users,
       },
+      {
+        title: "Marking",
+        url: "/master/marking",
+        icon: Users,
+      },
+      {
+        title: "Order Type",
+        url: "/master/order-type",
+        icon: Users,
+      },
+      {
+        title: "Payment Term",
+        url: "/master/payment-term",
+        icon: Users,
+      },
+      {
+        title: "Port of Loading",
+        url: "/master/port-of-loading",
+        icon: Users,
+      },
+      {
+        title: "Pre Recepit",
+        url: "/master/pre-recepit",
+        icon: Users,
+      },
     ],
   },
 
@@ -72,6 +97,11 @@ const NAVIGATION_CONFIG = [
   {
     title: "UserType",
     url: "/user-type",
+    icon: Frame,
+  },
+  {
+    title: "Setting",
+    url: "/setting",
     icon: Frame,
   },
 ];
@@ -112,11 +142,13 @@ export function AppSidebar({ ...props }) {
   const [openItem, setOpenItem] = useState(null);
   const userId = useSelector((state) => state.auth.user.id);
   const user = useSelector((state) => state.auth.user);
-  const company = useSelector((state) => state?.company?.companyDetails);
+  const company = useSelector(
+    (state) => state?.company?.companyDetails?.company_name
+  );
   const { pagePermissions } = useSelector((state) => state.permissions);
   const TEAMS_CONFIG = [
     {
-      name: `${company?.company_name}`,
+      name: company,
       logo: GalleryVerticalEnd,
       plan: "",
     },

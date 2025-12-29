@@ -9,19 +9,26 @@ import CountryList from "@/app/country/country-list";
 import NotFound from "@/app/errors/not-found";
 import GrCodeList from "@/app/grcode/grcode-list";
 import Home from "@/app/home/home";
+import MarkingList from "@/app/marking/marking-list";
+import OrderTypeList from "@/app/ordertype/ordertype-list";
+import PaymentTermList from "@/app/payementterm/paymentterm-list";
+import PortofList from "@/app/portofloading/portofloading-list";
+import PreRecepitList from "@/app/prereceipts/prereceipts-list";
+import Settings from "@/app/setting/setting";
 import CreateButton from "@/app/usermanagement/usermanagement-create-button";
 import CreatePage from "@/app/usermanagement/usermanagement-create-page";
 import ManagementDashboard from "@/app/usermanagement/usermanagement-dashboard";
 import UserManagementList from "@/app/usermanagement/usermanagement-list";
+import EditUserType from "@/app/usertype/usertype-edit";
+import UserTypeList from "@/app/usertype/usertype-list";
 import Maintenance from "@/components/common/maintenance";
 import ErrorBoundary from "@/components/error-boundry/error-boundry";
+import ForgotPasswordForm from "@/components/forgot-password/forgot-password";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import AuthRoute from "./auth-route";
 import ProtectedRoute from "./protected-route";
-import UserTypeList from "@/app/usertype/usertype-list";
-import EditUserType from "@/app/usertype/usertype-edit";
 
 function AppRoutes() {
   return (
@@ -29,18 +36,26 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<AuthRoute />}>
           <Route path="/" element={<Login />} />
-          {/* <Route
+          <Route
             path="/forgot-password"
             element={
               <Suspense fallback={<LoadingBar />}>
-                <ForgotPassword />
+                <ForgotPasswordForm />
               </Suspense>
             }
-          /> */}
+          />
           <Route path="/maintenance" element={<Maintenance />} />
         </Route>
 
         <Route path="/" element={<ProtectedRoute />}>
+          <Route
+            path="/setting"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <Settings />
+              </Suspense>
+            }
+          />
           <Route
             path="/user-type"
             element={
@@ -98,7 +113,7 @@ function AppRoutes() {
             }
           />
           <Route
-            path="/buyer"
+            path="/master/buyer"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <BuyerList />
@@ -142,6 +157,46 @@ function AppRoutes() {
             element={
               <Suspense fallback={<LoadingBar />}>
                 <GrCodeList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/marking"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <MarkingList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/order-type"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <OrderTypeList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/payment-term"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <PaymentTermList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/port-of-loading"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <PortofList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/pre-recepit"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <PreRecepitList />
               </Suspense>
             }
           />

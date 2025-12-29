@@ -29,7 +29,7 @@ import {
   ChevronUp,
   Search,
 } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 const DataTable = ({
   data = [],
@@ -38,9 +38,11 @@ const DataTable = ({
   searchPlaceholder = "Search...",
   toolbarRight,
   expandableRow,
+  serverPagination,
 }) => {
-  const [expandedRows, setExpandedRows] = useState({}); // ✅ NEW
-
+  const isServer = !!serverPagination;
+  const [searchValue, setSearchValue] = useState("");
+  const [expandedRows, setExpandedRows] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -52,23 +54,48 @@ const DataTable = ({
     columns,
     state: {
       globalFilter,
-      pagination,
+      pagination: isServer
+        ? {
+            pageIndex: serverPagination.pageIndex,
+            pageSize,
+          }
+        : pagination,
     },
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
-  const toggleRow = (rowId) => {
-    setExpandedRows((prev) => {
-      // if clicking same row → close it
-      if (prev[rowId]) return {};
+    manualPagination: isServer,
+    pageCount: isServer ? serverPagination.pageCount : undefined,
+    onPaginationChange: isServer
+      ? (updater) => {
+          const next =
+            typeof updater === "function"
+              ? updater({
+                  pageIndex: serverPagination.pageIndex,
+                  pageSize,
+                })
+              : updater;
 
-      // otherwise close all and open only this
-      return { [rowId]: true };
-    });
+          serverPagination.onPageChange(next.pageIndex);
+        }
+      : setPagination,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: isServer ? undefined : getFilteredRowModel(),
+    getPaginationRowModel: isServer ? undefined : getPaginationRowModel(),
+  });
+
+  const toggleRow = (rowId) => {
+    setExpandedRows((prev) => (prev[rowId] ? {} : { [rowId]: true }));
+  };
+  const handlePageSizeChange = (size) => {
+    if (isServer) {
+      serverPagination.onPageSizeChange?.(size);
+      serverPagination.onPageChange(0);
+    } else {
+      setPagination({
+        pageIndex: 0,
+        pageSize: size,
+      });
+    }
   };
 
   return (
@@ -77,21 +104,27 @@ const DataTable = ({
         <div className="relative w-64">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder={searchPlaceholder}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setGlobalFilter("");
+            value={searchValue}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchValue(value);
+
+              if (isServer) {
+                serverPagination.onSearch?.(value);
+                serverPagination.onPageChange(0);
+              } else {
+                setGlobalFilter(value);
               }
             }}
-            className="pl-8 h-9 text-sm bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200"
+            placeholder={searchPlaceholder}
+            className="pl-8 h-9 text-sm bg-gray-50 border-gray-200"
           />
         </div>
-        <div className="flex flex-col md:flex-row md:ml-auto gap-2 w-full md:w-auto">
+
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
+              <Button variant="outline" size="sm">
                 Columns <ChevronDown className="ml-2 h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -104,15 +137,14 @@ const DataTable = ({
                     (col) =>
                       col.accessorKey === column.id || col.id === column.id
                   );
-
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
-                      className="text-xs capitalize"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
                       }
+                      className="text-xs capitalize"
                     >
                       {columnDef?.header || column.id}
                     </DropdownMenuCheckboxItem>
@@ -120,20 +152,18 @@ const DataTable = ({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {toolbarRight}
         </div>
-        {toolbarRight && (
-          <div className="flex items-center gap-2">{toolbarRight}</div>
-        )}
       </div>
 
-      <div className="rounded-none border min-h-[31rem] grid grid-cols-1">
+      <div className="rounded-none border min-h-[31rem]">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id}>
                 {expandableRow && <TableHead className="w-10" />}
-
-                {headerGroup.headers.map((header) => (
+                {hg.headers.map((header) => (
                   <TableHead key={header.id}>
                     {flexRender(
                       header.column.columnDef.header,
@@ -145,34 +175,11 @@ const DataTable = ({
             ))}
           </TableHeader>
 
-          {/* <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center">
-                  No data found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody> */}
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <>
-                  {/* 🔹 Main Row */}
-                  <TableRow key={row.id}>
+                <Fragment key={row.id}>
+                  <TableRow>
                     {expandableRow && (
                       <TableCell>
                         <button onClick={() => toggleRow(row.id)}>
@@ -195,7 +202,6 @@ const DataTable = ({
                     ))}
                   </TableRow>
 
-                  {/* 🔹 Expanded Row */}
                   {expandedRows[row.id] && expandableRow && (
                     <TableRow className="bg-gray-50">
                       <TableCell
@@ -207,7 +213,7 @@ const DataTable = ({
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               ))
             ) : (
               <TableRow>
@@ -220,11 +226,37 @@ const DataTable = ({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          Total Records: {table.getFilteredRowModel().rows.length}
-        </div>
-        <div className="flex items-center justify-end gap-2">
+      {/* 🔹 Pagination */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
+          Total Records:{" "}
+          {isServer
+            ? serverPagination.total
+            : table.getFilteredRowModel().rows.length}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline">
+                {table.getState().pagination.pageSize}
+                <ChevronDown className="ml-1 h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+              {[10, 25, 50, 100].map((size) => (
+                <DropdownMenuCheckboxItem
+                  key={size}
+                  checked={table.getState().pagination.pageSize === size}
+                  onCheckedChange={() => handlePageSizeChange(size)}
+                >
+                  {size} / page
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button
             size="sm"
             variant="outline"

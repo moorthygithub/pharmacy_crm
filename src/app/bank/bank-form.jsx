@@ -103,11 +103,11 @@ const BankForm = React.memo(function BankForm({ editId }) {
       toast.error(err?.message || "Something went wrong");
     }
   };
-  if (loadingData) return <LoadingBar />;
   if (error) return <ApiErrorPage onRetry={() => fetchBankData()} />;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      {loadingData && <LoadingBar />}
       <DialogTrigger asChild>
         {isEdit ? (
           <BankEdit onClick={() => setOpen(true)} />

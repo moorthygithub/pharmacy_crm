@@ -1,62 +1,55 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-
-import ApiErrorPage from "@/components/api-error/api-error";
 import {
-  GRCodeCreate,
-  GRCodeEdit,
+    OrderTypeCreate,
+    OrderTypeEdit
 } from "@/components/buttoncontrol/button-component";
-import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { GRCODE_API } from "@/constants/apiConstants";
+import { ORDERTYPE_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from "sonner";
 const INITIAL_STATE = {
-  product_name: "",
-  gr_code_des: "",
-  gr_code_status: "Active",
+  order_type: "",
+  order_type_status: "Active",
 };
-
-const GrCodeForm = ({ editId = null, onSuccess }) => {
+const OrderTypeForm = ({ editId = null }) => {
   const isEdit = Boolean(editId);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_STATE);
 
   const queryClient = useQueryClient();
+  const { pathname } = useLocation();
 
   const { trigger, loading } = useApiMutation();
-  const {
-    trigger: fetchGRCODE,
-    loading: loadingData,
-    error,
-  } = useApiMutation();
+  const { trigger: fetchOrderType, loading: loadingData } = useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchGRCODE({ url: GRCODE_API.getById(editId) });
+      const res = await fetchOrderType({
+        url: ORDERTYPE_API.getById(editId),
+      });
+
       setFormData({
-        product_name: res?.data?.product_name || "",
-        gr_code_des: res?.data?.gr_code_des || "",
-        gr_code_status: res?.data?.gr_code_status || "Active",
+        order_type: res?.data?.order_type || "",
+        order_type_status: res?.data?.order_type_status || "",
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load Gr Code");
+      toast.error(err.message || "Failed to load OrderType");
     }
   };
 
@@ -65,47 +58,59 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
       setFormData(INITIAL_STATE);
       return;
     }
-    if (open && isEdit) fetchData();
+
+    if (open && isEdit) {
+      fetchData();
+    }
   }, [open, editId]);
 
   const handleSubmit = async () => {
-    if (!formData.product_name.trim() || !formData.gr_code_des.trim()) {
-      toast.error("Please fill all required fields");
+    if (!formData.order_type.trim()) {
+      toast.error("Order Type is required");
       return;
     }
 
     try {
       const res = await trigger({
-        url: isEdit ? GRCODE_API.updateById(editId) : GRCODE_API.create,
+        url: isEdit ? ORDERTYPE_API.updateById(editId) : ORDERTYPE_API.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
 
-      if (res.code === 201) {
+      if (res.code == 201) {
         toast.success(
-          res.message || isEdit
-            ? "Gr Code updated successfully"
-            : "Gr Code created successfully"
+          res.msg || isEdit
+            ? "Order Type updated successfully"
+            : "Order Type updated successfully"
         );
+        await queryClient.invalidateQueries(["marking-list"]);
         setOpen(false);
-        onSuccess?.();
       } else {
-        toast.error(res.message || "Something went wrong");
+        toast.error(res.msg || "Something went wrong");
       }
-    } catch (err) {
-      toast.error(err?.message || "Something went wrong");
+    } catch (error) {
+      toast.error(error?.message || "Something went wrong");
     }
   };
 
-  if (error) return <ApiErrorPage onRetry={fetchData} />;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {loadingData && <LoadingBar />}
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
-          {!isEdit && <GRCodeCreate className="ml-2" />}
-          {isEdit && <GRCodeEdit />}
+          {!isEdit && (
+            <OrderTypeCreate onClick={() => setOpen(true)} className="ml-2" />
+          )}
+
+          {isEdit && <OrderTypeEdit onClick={() => setOpen(true)} />}
+
+          {pathname === "/create-contract" && (
+            <p
+              className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer"
+              onClick={() => setOpen(true)}
+            >
+              {isEdit ? "Edit Order Type" : "Create Order Type"}
+            </p>
+          )}
         </div>
       </PopoverTrigger>
 
@@ -113,41 +118,33 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
         <div className="grid gap-4">
           <div className="space-y-1">
             <h4 className="font-medium leading-none">
-              {isEdit ? "Edit Gr Code" : "Create Gr Code"}
+              {isEdit ? "Edit Order Type" : "Create Order Type"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter Gr Code details
+              Enter Order Type details
             </p>
           </div>
 
           <div className="grid gap-2">
             <Input
-              placeholder="Product Name"
-              value={formData.product_name}
+              placeholder="Enter Order Type"
+              value={formData.order_type}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  product_name: e.target.value,
-                }))
-              }
-              disabled={loadingData}
-            />
-            <Textarea
-              placeholder="Description"
-              value={formData.gr_code_des}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  gr_code_des: e.target.value,
+                  order_type: e.target.value,
                 }))
               }
               disabled={loadingData}
             />
             {isEdit && (
               <Select
-                value={formData.gr_code_status || ""}
+                value={formData.order_type_status || ""}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, gr_code_status: value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    order_type_status: value,
+                  }))
                 }
               >
                 <SelectTrigger>
@@ -172,12 +169,13 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
             <Button onClick={handleSubmit} disabled={loading || loadingData}>
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
                 </>
               ) : isEdit ? (
-                "Update Gr Code"
+                "Update Order Type"
               ) : (
-                "Create Gr Code"
+                "Create Order Type"
               )}
             </Button>
           </div>
@@ -187,4 +185,4 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
   );
 };
 
-export default GrCodeForm;
+export default OrderTypeForm;
