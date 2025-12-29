@@ -2,16 +2,16 @@ import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
 import ToggleStatus from "@/components/common/status-toggle";
 import LoadingBar from "@/components/loader/loading-bar";
-import { COUNTRY_API } from "@/constants/apiConstants";
+import { PAYMENTTERM_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
-import CountryForm from "./country-form";
+import PaymentForm from "./paymentterm-form";
+// import BankForm from "./bank-form";
 
-const CountryList = () => {
+const PaymentTermList = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
   const params = useMemo(
@@ -22,42 +22,47 @@ const CountryList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-
   const { data, isLoading, isError, refetch } = useGetApiMutation({
-    url: COUNTRY_API.getlist,
-    queryKey: ["country-list", pageIndex],
+    url: PAYMENTTERM_API.getlist,
+    queryKey: ["payemntterm-list", pageIndex],
     params,
   });
   const apiData = data?.data;
 
+  const [open, setOpen] = useState(false);
+
   const columns = [
     {
-      header: "Country Name",
-      accessorKey: "country_name",
+      header: "Short",
+      accessorKey: "paymentTerms_short",
     },
     {
-      header: "Port",
-      accessorKey: "country_port",
+      header: "Terms",
+      accessorKey: "paymentTerms",
     },
     {
       header: "DP",
-      accessorKey: "country_dp",
+      accessorKey: "paymentTerms_dp",
     },
     {
       header: "DA",
-      accessorKey: "country_da",
+      accessorKey: "paymentTerms_da",
     },
     {
-      header: "POL",
-      accessorKey: "country_pol",
+      header: "LC",
+      accessorKey: "paymentTerms_lc",
+    },
+    {
+      header: "Advance",
+      accessorKey: "paymentTerms_advance",
     },
     {
       header: "Status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.country_status}
-          apiUrl={COUNTRY_API.updateStatus(row.original.id)}
-          payloadKey="country_status"
+          initialStatus={row.original.paymentTerms_status}
+          apiUrl={PAYMENTTERM_API.updateStatus(row.original.id)}
+          payloadKey="paymentTerms_status"
           onSuccess={refetch}
         />
       ),
@@ -65,7 +70,7 @@ const CountryList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <CountryForm editId={row.original.id} onSuccess={refetch} />
+        <PaymentForm editId={row.original.id} onSuccess={refetch} />
       ),
     },
   ];
@@ -75,15 +80,12 @@ const CountryList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
         data={apiData?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search country..."
-        toolbarRight={
-          <CountryForm open={open} setOpen={setOpen} onSuccess={refetch} />
-        }
+        searchPlaceholder="Search payemnt term..."
+        toolbarRight={<PaymentForm open={open} setOpen={setOpen} />}
         serverPagination={{
           pageIndex,
           pageCount: apiData?.last_page ?? 1,
@@ -97,4 +99,4 @@ const CountryList = () => {
   );
 };
 
-export default CountryList;
+export default PaymentTermList;

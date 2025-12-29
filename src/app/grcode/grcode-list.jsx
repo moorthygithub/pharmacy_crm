@@ -4,14 +4,31 @@ import LoadingBar from "@/components/loader/loading-bar";
 import { GRCODE_API } from "@/constants/apiConstants";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 
-import GrCodeStatusToggle from "@/components/grcode/togggle";
+import ToggleStatus from "@/components/common/status-toggle";
+import useDebounce from "@/hooks/useDebounce";
+import { useMemo, useState } from "react";
 import GrCodeForm from "./grcode-form";
 
 const GrCodeList = () => {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
+  const params = useMemo(
+    () => ({
+      page: pageIndex + 1,
+      per_page: pageSize,
+      ...(debouncedSearch?.trim() && { search: debouncedSearch.trim() }),
+    }),
+    [pageIndex, pageSize, debouncedSearch]
+  );
   const { data, isLoading, isError, refetch } = useGetApiMutation({
     url: GRCODE_API.getlist,
-    queryKey: ["grcode-list"],
+    queryKey: ["grcode-list", pageIndex],
+    params,
   });
+
+  const apiData = data?.data;
 
   const columns = [
     {
@@ -25,10 +42,11 @@ const GrCodeList = () => {
     {
       header: "Status",
       cell: ({ row }) => (
-        <GrCodeStatusToggle
+        <ToggleStatus
           initialStatus={row.original.gr_code_status}
-          grcodeId={row.original.id}
-          onStatusChange={refetch}
+          apiUrl={GRCODE_API.updateStatus(row.original.id)}
+          payloadKey="gr_code_status"
+          onSuccess={refetch}
         />
       ),
     },
@@ -40,17 +58,27 @@ const GrCodeList = () => {
     },
   ];
 
-  if (isLoading) return <LoadingBar />;
   if (isError) return <ApiErrorPage onRetry={refetch} />;
 
   return (
-    <DataTable
-      data={data?.data?.data || []}
-      columns={columns}
-      pageSize={10}
-      searchPlaceholder="Search GrCode..."
-      toolbarRight={<GrCodeForm onSuccess={refetch} />}
-    />
+    <>
+      {isLoading && <LoadingBar />}
+      <DataTable
+        data={data?.data?.data || []}
+        columns={columns}
+        pageSize={pageSize}
+        searchPlaceholder="Search GrCode..."
+        toolbarRight={<GrCodeForm onSuccess={refetch} />}
+        serverPagination={{
+          pageIndex,
+          pageCount: apiData?.last_page ?? 1,
+          total: apiData?.total ?? 0,
+          onPageChange: setPageIndex,
+          onPageSizeChange: setPageSize,
+          onSearch: setSearch,
+        }}
+      />
+    </>
   );
 };
 

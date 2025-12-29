@@ -1,9 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { toast } from "sonner";
-
+import {
+  MarkingCreate,
+  MarkingEdit
+} from "@/components/buttoncontrol/button-component";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,11 +9,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-import {
-  ContainerSizeCreate,
-  ContainerSizeEdit,
-} from "@/components/buttoncontrol/button-component";
 import {
   Select,
   SelectContent,
@@ -23,15 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CONTAINERSIZE_API } from "@/constants/apiConstants";
+import { MARKING_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from "sonner";
 const INITIAL_STATE = {
-  containerSize: "",
-  containerSize_status: "Active",
+  marking: "",
+  marking_status: "Active",
 };
-
-const ContainerSizeForm = ({ editId = null }) => {
+const MarkingForm = ({ editId = null }) => {
   const isEdit = Boolean(editId);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_STATE);
@@ -40,21 +36,20 @@ const ContainerSizeForm = ({ editId = null }) => {
   const { pathname } = useLocation();
 
   const { trigger, loading } = useApiMutation();
-  const { trigger: fetchContainerSize, loading: loadingData } =
-    useApiMutation();
+  const { trigger: fetchMarking, loading: loadingData } = useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchContainerSize({
-        url: CONTAINERSIZE_API.getById(editId),
+      const res = await fetchMarking({
+        url: MARKING_API.getById(editId),
       });
 
       setFormData({
-        containerSize: res?.data?.containerSize || "",
-        containerSize_status: res?.data?.containerSize_status || "",
+        marking: res?.data?.marking || "",
+        marking_status: res?.data?.marking_status || "",
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load Container Size");
+      toast.error(err.message || "Failed to load Marking");
     }
   };
 
@@ -70,16 +65,14 @@ const ContainerSizeForm = ({ editId = null }) => {
   }, [open, editId]);
 
   const handleSubmit = async () => {
-    if (!formData.containerSize.trim()) {
-      toast.error("Container Size is required");
+    if (!formData.marking.trim()) {
+      toast.error("Marking is required");
       return;
     }
 
     try {
       const res = await trigger({
-        url: isEdit
-          ? CONTAINERSIZE_API.updateById(editId)
-          : CONTAINERSIZE_API.create,
+        url: isEdit ? MARKING_API.updateById(editId) : MARKING_API.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
@@ -87,10 +80,10 @@ const ContainerSizeForm = ({ editId = null }) => {
       if (res.code == 201) {
         toast.success(
           res.msg || isEdit
-            ? "Container Size updated successfully"
-            : "Container Size updated successfully"
+            ? "Marking updated successfully"
+            : "Marking updated successfully"
         );
-        await queryClient.invalidateQueries(["containersize-list"]);
+        await queryClient.invalidateQueries(["marking-list"]);
         setOpen(false);
       } else {
         toast.error(res.msg || "Something went wrong");
@@ -105,20 +98,20 @@ const ContainerSizeForm = ({ editId = null }) => {
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
           {!isEdit && (
-            <ContainerSizeCreate
+            <MarkingCreate
               onClick={() => setOpen(true)}
               className="ml-2"
             />
           )}
 
-          {isEdit && <ContainerSizeEdit onClick={() => setOpen(true)} />}
+          {isEdit && <MarkingEdit onClick={() => setOpen(true)} />}
 
           {pathname === "/create-contract" && (
             <p
               className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer"
               onClick={() => setOpen(true)}
             >
-              {isEdit ? "Edit Container Size" : "Create Container Size"}
+              {isEdit ? "Edit Marking" : "Create Marking"}
             </p>
           )}
         </div>
@@ -128,32 +121,32 @@ const ContainerSizeForm = ({ editId = null }) => {
         <div className="grid gap-4">
           <div className="space-y-1">
             <h4 className="font-medium leading-none">
-              {isEdit ? "Edit Container Size" : "Create Container Size"}
+              {isEdit ? "Edit Marking" : "Create Marking"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter container size details
+              Enter marking details
             </p>
           </div>
 
           <div className="grid gap-2">
             <Input
-              placeholder="Enter Container Size"
-              value={formData.containerSize}
+              placeholder="Enter Marking"
+              value={formData.marking}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  containerSize: e.target.value,
+                  marking: e.target.value,
                 }))
               }
               disabled={loadingData}
             />
             {isEdit && (
               <Select
-                value={formData.containerSize_status || ""}
+                value={formData.marking_status || ""}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    containerSize_status: value,
+                    marking_status: value,
                   }))
                 }
               >
@@ -183,9 +176,9 @@ const ContainerSizeForm = ({ editId = null }) => {
                   Saving...
                 </>
               ) : isEdit ? (
-                "Update Container Size"
+                "Update Marking"
               ) : (
-                "Create Container Size"
+                "Create Marking"
               )}
             </Button>
           </div>
@@ -195,4 +188,4 @@ const ContainerSizeForm = ({ editId = null }) => {
   );
 };
 
-export default ContainerSizeForm;
+export default MarkingForm;

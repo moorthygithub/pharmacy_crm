@@ -2,47 +2,41 @@ import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
 import LoadingBar from "@/components/loader/loading-bar";
 import { BUYER_LIST } from "@/constants/apiConstants";
+import useDebounce from "@/hooks/useDebounce";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-import { Edit } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import BuyerForm from "./buyer-form";
-import {
-  BuyerCreate,
-  EditBuyer,
-} from "@/components/buttoncontrol/button-component";
+// import BuyerForm from "./buyer-form";
 
 const BuyerList = () => {
-  const {
-    data: data,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetApiMutation({
-    url: BUYER_LIST.getlist,
-    queryKey: ["buyer-list"],
-  });
   const [open, setOpen] = useState(false);
   const [editId, setEdit] = useState(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
+  const params = useMemo(
+    () => ({
+      page: pageIndex + 1,
+      per_page: pageSize,
+      ...(debouncedSearch?.trim() && { search: debouncedSearch.trim() }),
+    }),
+    [pageIndex, pageSize, debouncedSearch]
+  );
+
+  const { data, isLoading, isError, refetch } = useGetApiMutation({
+    url: BUYER_LIST.getlist,
+    queryKey: ["buyer-list", pageIndex],
+    params,
+  });
+
+  const apiData = data?.data;
 
   const columns = [
-    {
-      header: "Buyer Code",
-      accessorKey: "buyer_sort",
-    },
-    {
-      header: "Buyer Name",
-      accessorKey: "buyer_name",
-    },
-    {
-      header: "Country",
-      accessorKey: "buyer_country",
-    },
-    {
-      header: "Port",
-      accessorKey: "buyer_port",
-    },
+    { header: "Buyer Code", accessorKey: "buyer_sort" },
+    { header: "Buyer Name", accessorKey: "buyer_name" },
+    { header: "Country", accessorKey: "buyer_country" },
+    { header: "Port", accessorKey: "buyer_port" },
     {
       header: "Status",
       accessorKey: "buyer_status",
@@ -60,39 +54,30 @@ const BuyerList = () => {
     },
     {
       header: "Actions",
-      cell: ({ row }) => (
-        <div>
-          <EditBuyer
-            onClick={() => {
-              setEdit(row.original?.id);
-              setOpen(true);
-            }}
-          />
-        </div>
-      ),
+      cell: ({ row }) => <BuyerForm editId={row.original.id} />,
     },
   ];
 
-  if (isLoading) return <LoadingBar />;
   if (isError) return <ApiErrorPage onRetry={refetch} />;
-  const handleCreate = () => {
-    setOpen(true);
-    setEdit(null);
-  };
+
   return (
     <>
+      {isLoading && <LoadingBar />}
       <DataTable
-        data={data?.data?.data || []}
+        data={apiData?.data || []}
         columns={columns}
-        pageSize={10}
+        pageSize={pageSize}
         searchPlaceholder="Search buyer..."
-        toolbarRight={
-          <>
-            <BuyerCreate onClick={handleCreate} className="ml-2" />
-          </>
-        }
+        toolbarRight={<BuyerForm open={open} setOpen={setOpen} />}
+        serverPagination={{
+          pageIndex,
+          pageCount: apiData?.last_page ?? 1,
+          total: apiData?.total ?? 0,
+          onPageChange: setPageIndex,
+          onPageSizeChange: setPageSize,
+          onSearch: setSearch,
+        }}
       />
-      {open && <BuyerForm open={open} setOpen={setOpen} editId={editId} />}
     </>
   );
 };

@@ -1,17 +1,17 @@
 import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
-import ToggleStatus from "@/components/common/status-toggle";
 import LoadingBar from "@/components/loader/loading-bar";
-import { COUNTRY_API } from "@/constants/apiConstants";
-import useDebounce from "@/hooks/useDebounce";
+import { ORDERTYPE_API } from "@/constants/apiConstants";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-import { useMemo, useState } from "react";
-import CountryForm from "./country-form";
 
-const CountryList = () => {
+import ToggleStatus from "@/components/common/status-toggle";
+import useDebounce from "@/hooks/useDebounce";
+import { useMemo, useState } from "react";
+import OrderTypeForm from "./ordertype-form";
+
+const OrderTypeList = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
   const params = useMemo(
@@ -22,42 +22,31 @@ const CountryList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-
-  const { data, isLoading, isError, refetch } = useGetApiMutation({
-    url: COUNTRY_API.getlist,
-    queryKey: ["country-list", pageIndex],
+  const {
+    data: data,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetApiMutation({
+    url: ORDERTYPE_API.getlist,
+    queryKey: ["ordertype-list", pageIndex],
     params,
   });
   const apiData = data?.data;
-
   const columns = [
     {
-      header: "Country Name",
-      accessorKey: "country_name",
+      header: "Type",
+      accessorKey: "order_type",
     },
-    {
-      header: "Port",
-      accessorKey: "country_port",
-    },
-    {
-      header: "DP",
-      accessorKey: "country_dp",
-    },
-    {
-      header: "DA",
-      accessorKey: "country_da",
-    },
-    {
-      header: "POL",
-      accessorKey: "country_pol",
-    },
+
     {
       header: "Status",
+      accessorKey: "order_type_status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.country_status}
-          apiUrl={COUNTRY_API.updateStatus(row.original.id)}
-          payloadKey="country_status"
+          initialStatus={row.original.order_type_status}
+          apiUrl={ORDERTYPE_API.updateStatus(row.original.id)}
+          payloadKey="order_type_status"
           onSuccess={refetch}
         />
       ),
@@ -65,7 +54,9 @@ const CountryList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <CountryForm editId={row.original.id} onSuccess={refetch} />
+        <div>
+          <OrderTypeForm editId={row.original.id} />
+        </div>
       ),
     },
   ];
@@ -75,15 +66,12 @@ const CountryList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
         data={apiData?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search country..."
-        toolbarRight={
-          <CountryForm open={open} setOpen={setOpen} onSuccess={refetch} />
-        }
+        searchPlaceholder="Search order type..."
+        toolbarRight={<OrderTypeForm />}
         serverPagination={{
           pageIndex,
           pageCount: apiData?.last_page ?? 1,
@@ -97,4 +85,4 @@ const CountryList = () => {
   );
 };
 
-export default CountryList;
+export default OrderTypeList;

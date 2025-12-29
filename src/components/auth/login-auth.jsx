@@ -114,8 +114,7 @@ export default function AuthUI() {
           })
         );
         dispatch(setUsers(res.userN));
-        console.log(res, "res");
-        dispatch(setCompanyDetails(res?.company_details));
+        dispatch(setCompanyDetails(res?.company_detils));
       } else {
         toast.error(res.msg || "Login Failed: Unexpected response.");
       }

@@ -98,11 +98,11 @@ const GrCodeForm = ({ editId = null, onSuccess }) => {
     }
   };
 
-  if (loadingData) return <LoadingBar />;
   if (error) return <ApiErrorPage onRetry={fetchData} />;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {loadingData && <LoadingBar />}
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
           {!isEdit && <GRCodeCreate className="ml-2" />}

@@ -4,11 +4,24 @@ import LoadingBar from "@/components/loader/loading-bar";
 import { BAG_API } from "@/constants/apiConstants";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 
-import BagStatusToggle from "@/components/bagtype/toogle";
-import { useState } from "react";
+import ToggleStatus from "@/components/common/status-toggle";
+import useDebounce from "@/hooks/useDebounce";
+import { useMemo, useState } from "react";
 import BagTypeForm from "./bagtype-form";
 
 const BagTypeList = () => {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
+  const params = useMemo(
+    () => ({
+      page: pageIndex + 1,
+      per_page: pageSize,
+      ...(debouncedSearch?.trim() && { search: debouncedSearch.trim() }),
+    }),
+    [pageIndex, pageSize, debouncedSearch]
+  );
   const {
     data: data,
     isLoading,
@@ -16,8 +29,10 @@ const BagTypeList = () => {
     refetch,
   } = useGetApiMutation({
     url: BAG_API.getlist,
-    queryKey: ["bag-type-list"],
+    queryKey: ["bag-type-list", pageIndex],
+    params,
   });
+  const apiData = data?.data;
 
   const columns = [
     {
@@ -29,10 +44,11 @@ const BagTypeList = () => {
       header: "Status",
       accessorKey: "status",
       cell: ({ row }) => (
-        <BagStatusToggle
+        <ToggleStatus
           initialStatus={row.original.bagType_status}
-          teamId={row.original.id}
-          onStatusChange={refetch}
+          apiUrl={BAG_API.updateStatus(row.original.id)}
+          payloadKey="bagType_status"
+          onSuccess={refetch}
         />
       ),
     },
@@ -46,21 +62,26 @@ const BagTypeList = () => {
     },
   ];
 
-  if (isLoading) return <LoadingBar />;
   if (isError) return <ApiErrorPage onRetry={refetch} />;
 
   return (
     <>
+      {isLoading && <LoadingBar />}
+
       <DataTable
-        data={data?.data?.data || []}
+        data={apiData?.data || []}
         columns={columns}
-        pageSize={10}
+        pageSize={pageSize}
         searchPlaceholder="Search bag..."
-        toolbarRight={
-          <>
-            <BagTypeForm />
-          </>
-        }
+        toolbarRight={<BagTypeForm />}
+        serverPagination={{
+          pageIndex,
+          pageCount: apiData?.last_page ?? 1,
+          total: apiData?.total ?? 0,
+          onPageChange: setPageIndex,
+          onPageSizeChange: setPageSize,
+          onSearch: setSearch,
+        }}
       />
     </>
   );

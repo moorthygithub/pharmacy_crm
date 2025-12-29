@@ -1,4 +1,8 @@
 import ApiErrorPage from "@/components/api-error/api-error";
+import {
+  BuyerCreate,
+  EditBuyer,
+} from "@/components/buttoncontrol/button-component";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +29,7 @@ import useMasterQueries from "@/hooks/useMasterQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 const INITIAL_STATE = {
@@ -37,10 +43,12 @@ const INITIAL_STATE = {
   buyer_status: "Active",
 };
 
-const BuyerForm = ({ open, setOpen, editId = null }) => {
+const BuyerForm = ({ editId = null }) => {
   const isEdit = Boolean(editId);
   const queryClient = useQueryClient();
-  const { trigger, loading } = useApiMutation();
+  const [open, setOpen] = useState(false);
+  const { trigger: UpdateBuyer, loading: buyerloading } = useApiMutation();
+    const { pathname } = useLocation();
   const { trigger: fetchBuyer, loadingbuyer, error } = useApiMutation();
 
   const [formData, setFormData] = useState(INITIAL_STATE);
@@ -110,39 +118,40 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
     }
 
     try {
-      const res = await trigger({
+      const res = await UpdateBuyer({
         url: isEdit ? BUYER_LIST.updateById(editId) : BUYER_LIST.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
       if (res.code == 201) {
         toast.success(
-          res.msg || isEdit
+          res.message || isEdit
             ? "Buyer updated successfully"
             : "Buyer created successfully"
         );
         await queryClient.invalidateQueries(["buyer-list"]);
         setOpen(false);
       } else {
-        toast.error(res.msg || "Something went wrong");
+        toast.error(res.message || "Something went wrong");
       }
     } catch (error) {
       toast.error(error?.message || "Something went wrong");
     }
   };
-  if (loadingbuyer || loadingcountry || loadingport) return <LoadingBar />;
+
   if (error || errorcountry || errorport)
     return <ApiErrorPage onRetry={() => fetchData()} />;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} aria-describedby={undefined}>
-      {/* <DialogTrigger asChild>
-        <Button size="sm">
-          <SquarePlus className="w-4 h-4 mr-2" />
-          Buyer
-        </Button>
-      </DialogTrigger> */}
-
+    <Dialog open={open} onOpenChange={setOpen}>
+      {(loadingbuyer || loadingcountry || loadingport) && <LoadingBar />}
+      <DialogTrigger asChild>
+        {isEdit ? (
+          <EditBuyer onClick={() => setOpen(true)} />
+        ) : pathname === "/master/buyer" ? (
+          <BuyerCreate onClick={() => setOpen(true)} className="ml-2" />
+        ) : null}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Buyer" : "Create Buyer"}</DialogTitle>
@@ -199,9 +208,9 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
                   <SelectValue placeholder="Select port" />
                 </SelectTrigger>
                 <SelectContent>
-                  {portsData?.country?.map((p, i) => (
-                    <SelectItem key={i} value={p.country_port}>
-                      {p.country_port}
+                  {portsData?.data?.map((p, i) => (
+                    <SelectItem key={i} value={p.portofLoading}>
+                      {p.portofLoading}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -218,7 +227,7 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countryData?.country?.map((c, i) => (
+                  {countryData?.data?.map((c, i) => (
                     <SelectItem key={i} value={c.country_name}>
                       {c.country_name}
                     </SelectItem>
@@ -236,38 +245,40 @@ const BuyerForm = ({ open, setOpen, editId = null }) => {
                 onChange={handleChange}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="buyer_status">Status</Label>
-              <Select
-                value={formData.buyer_status}
-                onValueChange={handleStatusChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
+            {isEdit && (
+              <div className="grid gap-2">
+                <Label htmlFor="buyer_status">Status</Label>
+                <Select
+                  value={formData.buyer_status}
+                  onValueChange={handleStatusChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="Active">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                      Active
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="Inactive">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
-                      Inactive
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <SelectContent>
+                    <SelectItem value="Active">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                        Active
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="Inactive">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                        Inactive
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? (
+          <Button onClick={handleSubmit} disabled={buyerloading}>
+            {buyerloading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Saving...

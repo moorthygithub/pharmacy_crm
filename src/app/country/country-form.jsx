@@ -1,8 +1,8 @@
+import ApiErrorPage from "@/components/api-error/api-error";
 import {
   CountryCreate,
   CountryEdit,
 } from "@/components/buttoncontrol/button-component";
-import ApiErrorPage from "@/components/api-error/api-error";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,11 +113,11 @@ const CountryForm = React.memo(function CountryForm({ editId, onSuccess }) {
     }
   };
 
-  if (loadingData) return <LoadingBar />;
   if (error) return <ApiErrorPage onRetry={fetchCountryData} />;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      {loadingData && <LoadingBar />}
       <DialogTrigger asChild>
         {isEdit ? (
           <CountryEdit />

@@ -85,16 +85,16 @@ const AppProvider = ({ children }) => {
       }
 
       setIsPanelUp(true);
-      console.log(panelRes);
+      // console.log(panelRes);
       if (panelRes?.code == 201) {
-        console.log(panelRes?.company_detils, "panelRes?.company_detils)");
+        // console.log(panelRes?.company_detils, "panelRes?.company_detils)");
 
         dispatch(setCompanyDetails(panelRes?.company_detils));
 
         // dispatch(setCompanyImage(panelRes.company_image));
       }
 
-      console.log(company, "company");
+      // console.log(company, "company");
       const serverVersion = panelRes?.version?.version_panel;
       if (token) {
         dispatch(

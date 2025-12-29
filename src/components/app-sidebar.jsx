@@ -33,7 +33,7 @@ const NAVIGATION_CONFIG = [
     items: [
       {
         title: "Buyer",
-        url: "/buyer",
+        url: "/master/buyer",
         icon: Users,
       },
       {
@@ -61,6 +61,21 @@ const NAVIGATION_CONFIG = [
         url: "/master/grcode",
         icon: Users,
       },
+      {
+        title: "Marking",
+        url: "/master/marking",
+        icon: Users,
+      },
+      {
+        title: "Order Type",
+        url: "/master/order-type",
+        icon: Users,
+      },
+      {
+        title: "Payment Term",
+        url: "/master/payment-term",
+        icon: Users,
+      },
     ],
   },
 
@@ -72,6 +87,11 @@ const NAVIGATION_CONFIG = [
   {
     title: "UserType",
     url: "/user-type",
+    icon: Frame,
+  },
+  {
+    title: "Setting",
+    url: "/setting",
     icon: Frame,
   },
 ];

@@ -1,37 +1,33 @@
+import {
+    OrderTypeCreate,
+    OrderTypeEdit
+} from "@/components/buttoncontrol/button-component";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { ORDERTYPE_API } from "@/constants/apiConstants";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
-import {
-  ContainerSizeCreate,
-  ContainerSizeEdit,
-} from "@/components/buttoncontrol/button-component";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CONTAINERSIZE_API } from "@/constants/apiConstants";
-import { useApiMutation } from "@/hooks/useApiMutation";
-
 const INITIAL_STATE = {
-  containerSize: "",
-  containerSize_status: "Active",
+  order_type: "",
+  order_type_status: "Active",
 };
-
-const ContainerSizeForm = ({ editId = null }) => {
+const OrderTypeForm = ({ editId = null }) => {
   const isEdit = Boolean(editId);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_STATE);
@@ -40,21 +36,20 @@ const ContainerSizeForm = ({ editId = null }) => {
   const { pathname } = useLocation();
 
   const { trigger, loading } = useApiMutation();
-  const { trigger: fetchContainerSize, loading: loadingData } =
-    useApiMutation();
+  const { trigger: fetchOrderType, loading: loadingData } = useApiMutation();
 
   const fetchData = async () => {
     try {
-      const res = await fetchContainerSize({
-        url: CONTAINERSIZE_API.getById(editId),
+      const res = await fetchOrderType({
+        url: ORDERTYPE_API.getById(editId),
       });
 
       setFormData({
-        containerSize: res?.data?.containerSize || "",
-        containerSize_status: res?.data?.containerSize_status || "",
+        order_type: res?.data?.order_type || "",
+        order_type_status: res?.data?.order_type_status || "",
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load Container Size");
+      toast.error(err.message || "Failed to load OrderType");
     }
   };
 
@@ -70,16 +65,14 @@ const ContainerSizeForm = ({ editId = null }) => {
   }, [open, editId]);
 
   const handleSubmit = async () => {
-    if (!formData.containerSize.trim()) {
-      toast.error("Container Size is required");
+    if (!formData.order_type.trim()) {
+      toast.error("Order Type is required");
       return;
     }
 
     try {
       const res = await trigger({
-        url: isEdit
-          ? CONTAINERSIZE_API.updateById(editId)
-          : CONTAINERSIZE_API.create,
+        url: isEdit ? ORDERTYPE_API.updateById(editId) : ORDERTYPE_API.create,
         method: isEdit ? "PUT" : "POST",
         data: formData,
       });
@@ -87,10 +80,10 @@ const ContainerSizeForm = ({ editId = null }) => {
       if (res.code == 201) {
         toast.success(
           res.msg || isEdit
-            ? "Container Size updated successfully"
-            : "Container Size updated successfully"
+            ? "Order Type updated successfully"
+            : "Order Type updated successfully"
         );
-        await queryClient.invalidateQueries(["containersize-list"]);
+        await queryClient.invalidateQueries(["marking-list"]);
         setOpen(false);
       } else {
         toast.error(res.msg || "Something went wrong");
@@ -105,20 +98,17 @@ const ContainerSizeForm = ({ editId = null }) => {
       <PopoverTrigger asChild>
         <div className="flex items-center gap-2">
           {!isEdit && (
-            <ContainerSizeCreate
-              onClick={() => setOpen(true)}
-              className="ml-2"
-            />
+            <OrderTypeCreate onClick={() => setOpen(true)} className="ml-2" />
           )}
 
-          {isEdit && <ContainerSizeEdit onClick={() => setOpen(true)} />}
+          {isEdit && <OrderTypeEdit onClick={() => setOpen(true)} />}
 
           {pathname === "/create-contract" && (
             <p
               className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer"
               onClick={() => setOpen(true)}
             >
-              {isEdit ? "Edit Container Size" : "Create Container Size"}
+              {isEdit ? "Edit Order Type" : "Create Order Type"}
             </p>
           )}
         </div>
@@ -128,32 +118,32 @@ const ContainerSizeForm = ({ editId = null }) => {
         <div className="grid gap-4">
           <div className="space-y-1">
             <h4 className="font-medium leading-none">
-              {isEdit ? "Edit Container Size" : "Create Container Size"}
+              {isEdit ? "Edit Order Type" : "Create Order Type"}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Enter container size details
+              Enter Order Type details
             </p>
           </div>
 
           <div className="grid gap-2">
             <Input
-              placeholder="Enter Container Size"
-              value={formData.containerSize}
+              placeholder="Enter Order Type"
+              value={formData.order_type}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  containerSize: e.target.value,
+                  order_type: e.target.value,
                 }))
               }
               disabled={loadingData}
             />
             {isEdit && (
               <Select
-                value={formData.containerSize_status || ""}
+                value={formData.order_type_status || ""}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    containerSize_status: value,
+                    order_type_status: value,
                   }))
                 }
               >
@@ -183,9 +173,9 @@ const ContainerSizeForm = ({ editId = null }) => {
                   Saving...
                 </>
               ) : isEdit ? (
-                "Update Container Size"
+                "Update Order Type"
               ) : (
-                "Create Container Size"
+                "Create Order Type"
               )}
             </Button>
           </div>
@@ -195,4 +185,4 @@ const ContainerSizeForm = ({ editId = null }) => {
   );
 };
 
-export default ContainerSizeForm;
+export default OrderTypeForm;

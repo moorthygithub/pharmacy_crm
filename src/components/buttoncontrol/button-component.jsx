@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Edit, SquarePlus } from "lucide-react";
+import { forwardRef } from "react";
 import { useSelector } from "react-redux";
 import { checkPermission } from "./permisssion";
-import React, { forwardRef } from "react";
 
-export const BuyerCreate = ({ onClick, className }) => {
+export const BuyerCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -15,16 +15,16 @@ export const BuyerCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Buyer
     </Button>
   );
-};
+});
 
 BuyerCreate.page = "Buyer";
 
-export const EditBuyer = ({ onClick, className }) => {
+export const EditBuyer = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -35,16 +35,20 @@ export const EditBuyer = ({ onClick, className }) => {
   }
 
   return (
-    <Button onClick={onClick} className={className} variant="ghost" size="icon">
+    <Button
+      onClick={onClick}
+      className={className}
+      ref={ref}
+      variant="ghost"
+      size="icon"
+    >
       <Edit className="h-4 w-4 text-black" />
     </Button>
   );
-};
-
+});
 EditBuyer.page = "Buyer";
 //////// MASTER – Bag Type
-
-export const BagTypeCreate = ({ onClick, className }) => {
+export const BagTypeCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -55,15 +59,14 @@ export const BagTypeCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Bag Type
     </Button>
   );
-};
+});
 
 BagTypeCreate.page = "Bag Type";
-
 export const BagTypeEdit = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
@@ -89,7 +92,7 @@ export const BagTypeEdit = forwardRef(({ onClick, className }, ref) => {
 
 BagTypeEdit.page = "Bag Type";
 /////// MASTER – Bank Create
-export const BankCreate = ({ onClick, className }) => {
+export const BankCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -100,12 +103,12 @@ export const BankCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Bank
     </Button>
   );
-};
+});
 
 BankCreate.page = "Bank";
 
@@ -135,7 +138,7 @@ export const BankEdit = forwardRef(({ onClick, className }, ref) => {
 
 BankEdit.page = "Bank";
 /////// MASTER – Container Size
-export const ContainerSizeCreate = ({ onClick, className }) => {
+export const ContainerSizeCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -148,12 +151,12 @@ export const ContainerSizeCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Container Size
     </Button>
   );
-};
+});
 
 ContainerSizeCreate.page = "Container Size";
 
@@ -185,7 +188,7 @@ export const ContainerSizeEdit = forwardRef(({ onClick, className }, ref) => {
 
 ContainerSizeEdit.page = "Container Size";
 /////// MASTER – Country Create
-export const CountryCreate = ({ onClick, className }) => {
+export const CountryCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -196,12 +199,12 @@ export const CountryCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Country
     </Button>
   );
-};
+});
 
 CountryCreate.page = "Country";
 
@@ -231,7 +234,7 @@ export const CountryEdit = forwardRef(({ onClick, className }, ref) => {
 
 CountryEdit.page = "Country";
 /////// MASTER – GR Code
-export const GRCodeCreate = ({ onClick, className }) => {
+export const GRCodeCreate = forwardRef(({ onClick, className }, ref) => {
   const userId = useSelector((state) => state.auth.user?.id);
   const buttonPermissions = useSelector(
     (state) => state.permissions.buttonPermissions
@@ -242,12 +245,12 @@ export const GRCodeCreate = ({ onClick, className }) => {
   }
 
   return (
-    <Button variant="default" className={className} onClick={onClick}>
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
       <SquarePlus className="h-4 w-4 mr-2" />
       Gr Code
     </Button>
   );
-};
+});
 
 GRCodeCreate.page = "Gr Code";
 
@@ -276,6 +279,146 @@ export const GRCodeEdit = forwardRef(({ onClick, className }, ref) => {
 });
 
 GRCodeEdit.page = "Gr Code";
+/////// MASTER – Marking
+export const MarkingCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "MarkingCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Marking
+    </Button>
+  );
+});
+
+MarkingCreate.page = "Marking";
+
+/////// MASTER – Marking
+export const MarkingEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "MarkingEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+MarkingEdit.page = "Marking";
+/////// MASTER – Order Type
+export const OrderTypeCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "OrderTypeCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Order Type
+    </Button>
+  );
+});
+
+OrderTypeCreate.page = "Order Type";
+
+/////// MASTER – Order Type
+export const OrderTypeEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "OrderTypeEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+OrderTypeEdit.page = "Order Type";
+/////// MASTER – Payment Term
+export const PaymentTermCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (
+    !checkPermission(String(userId), "PaymentTermCreate", buttonPermissions)
+  ) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Payment Term
+    </Button>
+  );
+});
+
+PaymentTermCreate.page = "Payment Term";
+
+/////// MASTER – Payment Term
+export const PaymentTermEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PaymentTermEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+PaymentTermEdit.page = "Payment Term";
 export default {
   BuyerCreate,
   EditBuyer,
@@ -289,4 +432,10 @@ export default {
   CountryEdit,
   GRCodeCreate,
   GRCodeEdit,
+  MarkingCreate,
+  MarkingEdit,
+  OrderTypeCreate,
+  OrderTypeEdit,
+  PaymentTermCreate,
+  PaymentTermEdit,
 };
