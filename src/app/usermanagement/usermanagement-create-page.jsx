@@ -64,7 +64,6 @@ const CreatePage = () => {
   const availablePages = useMemo(() => {
     return pages?.length ? ["All", ...pages.map((p) => p.title)] : [];
   }, [pages]);
-  console.log(availablePages, "availablePages");
 
   const handlePageChange = (value) => {
     setSelectedPage(value);

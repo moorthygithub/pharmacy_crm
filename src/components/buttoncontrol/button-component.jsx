@@ -515,6 +515,330 @@ export const PreRecepitEdit = forwardRef(({ onClick, className }, ref) => {
 });
 
 PreRecepitEdit.page = "Pre Recepit";
+
+/////// MASTER – Product
+export const ProductCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ProductCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Product
+    </Button>
+  );
+});
+
+ProductCreate.page = "Product";
+
+/////// MASTER – Product
+export const ProductEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ProductEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+ProductEdit.page = "Product";
+/////// MASTER – Scheme
+export const SchemeCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "SchemeCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Scheme
+    </Button>
+  );
+});
+
+SchemeCreate.page = "Scheme";
+
+/////// MASTER – Scheme
+export const SchemeEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "SchemeEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+SchemeEdit.page = "Scheme";
+/////// MASTER – Shipper
+export const ShipperCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ShipperCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Shipper
+    </Button>
+  );
+});
+
+ShipperCreate.page = "Shipper";
+
+/////// MASTER – Shipper
+export const ShipperEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ShipperEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+ShipperEdit.page = "Shipper";
+/////// MASTER – Vessel
+export const VesselCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "VesselCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Vessel
+    </Button>
+  );
+});
+
+VesselCreate.page = "Vessel";
+
+/////// MASTER – Vessel
+export const VesselEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "VesselEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+VesselEdit.page = "Vessel";
+/////// MASTER – State
+export const StateCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "StateCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      State
+    </Button>
+  );
+});
+
+StateCreate.page = "State";
+
+/////// MASTER – State
+export const StateEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "StateEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+StateEdit.page = "State";
+/////// MASTER – Branch
+export const BranchCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "BranchCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Branch
+    </Button>
+  );
+});
+
+BranchCreate.page = "Branch";
+
+/////// MASTER – Branch Edit
+export const BranchEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "BranchEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+BranchEdit.page = "Branch";
+/////// MASTER – Item
+export const ItemCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ItemCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Item
+    </Button>
+  );
+});
+
+ItemCreate.page = "Item";
+
+/////// MASTER – Item Edit
+export const ItemEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "ItemEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+ItemEdit.page = "Item";
+
 export default {
   BuyerCreate,
   EditBuyer,
@@ -538,4 +862,18 @@ export default {
   PortofLoadingEdit,
   PreRecepitCreate,
   PreRecepitEdit,
+  ProductCreate,
+  ProductEdit,
+  SchemeCreate,
+  SchemeEdit,
+  ShipperCreate,
+  ShipperEdit,
+  VesselCreate,
+  VesselEdit,
+  StateCreate,
+  StateEdit,
+  BranchCreate,
+  BranchEdit,
+  BranchCreate,
+  BranchEdit,
 };

@@ -54,7 +54,7 @@ const ToggleStatus = ({
         }`}
     >
       <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-      <span className="text-xs font-medium">{status}</span>
+      <span className="text-sm font-medium">{status}</span>
     </button>
   );
 };
