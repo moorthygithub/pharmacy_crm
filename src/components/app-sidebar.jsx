@@ -86,6 +86,31 @@ const NAVIGATION_CONFIG = [
         url: "/master/pre-recepit",
         icon: Users,
       },
+      {
+        title: "Product",
+        url: "/master/product",
+        icon: Users,
+      },
+      {
+        title: "Scheme",
+        url: "/master/scheme",
+        icon: Users,
+      },
+      {
+        title: "Shipper",
+        url: "/master/shipper",
+        icon: Users,
+      },
+      {
+        title: "Vessel",
+        url: "/master/vessel",
+        icon: Users,
+      },
+      {
+        title: "State",
+        url: "/master/state",
+        icon: Users,
+      },
     ],
   },
 

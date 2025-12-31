@@ -136,7 +136,7 @@ const AppProvider = ({ children }) => {
       setIsPanelUp(true);
     } catch {
       setIsPanelUp(false);
-      Logout();
+      await Logout();
       navigate("/maintenance");
     }
   };

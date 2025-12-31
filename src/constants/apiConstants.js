@@ -116,3 +116,42 @@ export const PRERECEIPTS_API = {
   updateById: (id) => `/prereceipts/${id}`,
   updateStatus: (id) => `/prereceiptss/${id}/status`,
 };
+export const PRODUCT_API = {
+  getlist: "/product",
+  create: "/product",
+  active: "activeProducts",
+  getById: (id) => `/product/${id}`,
+  updateById: (id) => `/product/${id}`,
+  updateStatus: (id) => `/products/${id}/status`,
+};
+export const SCHEME_API = {
+  getlist: "/scheme",
+  create: "/scheme",
+  active: "activeSchemes",
+  getById: (id) => `/scheme/${id}`,
+  updateById: (id) => `/scheme/${id}`,
+  updateStatus: (id) => `/schemes/${id}/status`,
+};
+export const SHIPPER_API = {
+  getlist: "/shipper",
+  create: "/shipper",
+  active: "activeShippers",
+  getById: (id) => `/shipper/${id}`,
+  updateById: (id) => `/shipper/${id}`,
+  updateStatus: (id) => `/shippers/${id}/status`,
+};
+export const VESSEL_API = {
+  getlist: "/vessel",
+  create: "/vessel",
+  active: "activeVessels",
+  getById: (id) => `/vessel/${id}`,
+  updateById: (id) => `/vessel/${id}`,
+  updateStatus: (id) => `/vessels/${id}/status`,
+};
+export const STATE_API = {
+  getlist: "/panel-fetch-state-list",
+  create: "/panel-create-state",
+  active: "/panel-fetch-state",
+  getById: (id) => `/panel-fetch-state-by-id/${id}`,
+  updateById: (id) => `/panel-update-state/${id}`,
+};

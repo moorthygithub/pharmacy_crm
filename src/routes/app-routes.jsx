@@ -29,6 +29,11 @@ import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import AuthRoute from "./auth-route";
 import ProtectedRoute from "./protected-route";
+import ProductList from "@/app/product/product-list";
+import SchemeList from "@/app/scheme/scheme-list";
+import ShipperList from "@/app/shipper/shipper-list";
+import VesselList from "@/app/vessel/vessel-list";
+import StateList from "@/app/state/state-list";
 
 function AppRoutes() {
   return (
@@ -197,6 +202,46 @@ function AppRoutes() {
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PreRecepitList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/product"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ProductList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/scheme"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <SchemeList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/shipper"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ShipperList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/vessel"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <VesselList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/state"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <StateList />
               </Suspense>
             }
           />

@@ -20,6 +20,12 @@ export const sidebarData = {
     { name: "Payment Term", url: "/master/payment-term" },
     { name: "Port of Loading", url: "/master/port-of-loading" },
     { name: "Pre Recepit", url: "/master/pre-recepit" },
+    { name: "Product", url: "/master/product" },
+    { name: "Scheme", url: "/master/scheme" },
+    { name: "Shipper", url: "/master/shipper" },
+    { name: "Vessel", url: "/master/vessel" },
+    { name: "State", url: "/master/state" },
+    { name: "Item", url: "/master/item" },
   ],
   userManagement: [
     { name: "User Management", url: "/userManagement" },

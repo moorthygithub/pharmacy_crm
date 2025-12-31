@@ -1,3 +1,0 @@
-portofLoading;
-portofLoadingCountry;
-portofLoading_status;

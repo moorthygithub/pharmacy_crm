@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { FORGOTPASSWORD } from "@/constants/apiConstants";
 
-// Get CSS variables from the document
 const getCSSVariable = (variable) => {
   return getComputedStyle(document.documentElement)
     .getPropertyValue(variable)
