@@ -283,22 +283,22 @@ function AppRoutes() {
               </Suspense>
             }
           />
-          <Route
+          {/* <Route
             path="/master/precarriage"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PrecarriageList />
               </Suspense>
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/master/vendor"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <VendorList />
               </Suspense>
             }
-          />
+          /> */}
         </Route>
 
         <Route path="*" element={<NotFound />} />
