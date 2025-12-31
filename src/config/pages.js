@@ -24,8 +24,11 @@ export const sidebarData = {
     { name: "Scheme", url: "/master/scheme" },
     { name: "Shipper", url: "/master/shipper" },
     { name: "Vessel", url: "/master/vessel" },
+    { name: "Company", url: "/master/branch" },
     { name: "State", url: "/master/state" },
     { name: "Item", url: "/master/item" },
+    { name: "Pre Carriage", url: "/master/precarriage" },
+    { name: "Vendor", url: "/master/vendor" },
   ],
   userManagement: [
     { name: "User Management", url: "/userManagement" },

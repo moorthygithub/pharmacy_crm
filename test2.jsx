@@ -387,7 +387,30 @@ import { getImageBaseUrl, getNoImageUrl } from "@/utils/imageUtils";
 import { Copy } from "lucide-react";
 import GalleryEdit from "./gallery-edit";
 import { toast } from "sonner";
-
+//  <Route
+//             path="/master/vendor"
+//             element={
+//               <Suspense fallback={<LoadingBar />}>
+//                 <VendorList />
+//               </Suspense>
+//             }
+//           />
+//           <Route
+//             path="/master/vendor/create"
+//             element={
+//               <Suspense fallback={<LoadingBar />}>
+//                 <VendorForm />
+//               </Suspense>
+//             }
+//           />
+//           <Route
+//             path="/master//master/vendor/edit/:id"
+//             element={
+//               <Suspense fallback={<LoadingBar />}>
+//                 <VendorForm />
+//               </Suspense>
+//             }
+//           />
 const GalleryList = () => {
   const { data, isLoading, isError, refetch } = useGetApiMutation({
     url: GALLERYAPI.gallery,

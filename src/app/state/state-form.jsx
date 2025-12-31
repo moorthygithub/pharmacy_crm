@@ -86,9 +86,10 @@ const StateForm = React.memo(function StateForm({ editId, onSuccess }) {
 
       if (res.code === 201) {
         toast.success(
-          res.message || isEdit
-            ? "State updated successfully"
-            : "State created successfully"
+          res.message ??
+            (isEdit
+              ? "State updated successfully"
+              : "State created successfully")
         );
         setOpen(false);
         onSuccess();

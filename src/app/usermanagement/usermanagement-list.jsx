@@ -3,7 +3,7 @@ import DataTable from "@/components/common/data-table";
 import LoadingBar from "@/components/loader/loading-bar";
 import { Button } from "@/components/ui/button";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import StatusToggle from "@/components/usermanagement/list/toggle";
@@ -85,6 +85,7 @@ const UserManagementList = () => {
               onClick={() => navigate("/page-management")}
               className="ml-2"
             >
+              <Plus className="w-4 h-4 mr-2" />
               Page
             </Button>
 
@@ -93,6 +94,7 @@ const UserManagementList = () => {
               variant="default"
               onClick={() => navigate("/button-management")}
             >
+              <Plus className="w-4 h-4 mr-2" />
               Button
             </Button>
           </>

@@ -9,22 +9,11 @@ import { useMemo, useState } from "react";
 import StateForm from "./state-form";
 
 const StateList = () => {
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search);
-  const params = useMemo(
-    () => ({
-      page: pageIndex + 1,
-      per_page: pageSize,
-      ...(debouncedSearch?.trim() && { search: debouncedSearch.trim() }),
-    }),
-    [pageIndex, pageSize, debouncedSearch]
-  );
+
+
   const { data, isLoading, isError, refetch } = useGetApiMutation({
     url: STATE_API.getlist,
-    queryKey: ["state-list", pageIndex],
-    params,
+    queryKey: ["state-list"],
   });
   const [open, setOpen] = useState(false);
   const columns = [
@@ -70,19 +59,11 @@ const StateList = () => {
       <DataTable
         data={data?.data || []}
         columns={columns}
-        pageSize={pageSize}
         searchPlaceholder="Search state..."
         toolbarRight={
           <StateForm open={open} setOpen={setOpen} onSuccess={refetch} />
         }
-        // serverPagination={{
-        //   pageIndex,
-        //   pageCount: data?.last_page ?? 1,
-        //   total: data?.total ?? 0,
-        //   onPageChange: setPageIndex,
-        //   onPageSizeChange: setPageSize,
-        //   onSearch: setSearch,
-        // }}
+       
       />
     </>
   );

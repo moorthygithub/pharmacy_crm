@@ -48,17 +48,28 @@ const BuyerForm = ({ editId = null }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const { trigger: UpdateBuyer, loading: buyerloading } = useApiMutation();
-    const { pathname } = useLocation();
+  const { pathname } = useLocation();
   const { trigger: fetchBuyer, loadingbuyer, error } = useApiMutation();
 
   const [formData, setFormData] = useState(INITIAL_STATE);
-  const { PortList, CountryList } = useMasterQueries();
-  const { data: portsData, loading: loadingport, error: errorport } = PortList;
+  const { countryPort, country } = useMasterQueries(
+    ["countryPort", "country"],
+    open
+  );
+
+  const {
+    data: portsData,
+    loading: loadingPort,
+    error: errorPort,
+    refetch: refetchPort,
+  } = countryPort;
+
   const {
     data: countryData,
-    loading: loadingcountry,
-    error: errorcountry,
-  } = CountryList;
+    loading: loadingCountry,
+    error: errorCountry,
+    refetch: refetchCountry,
+  } = country;
 
   const fetchData = async () => {
     try {
@@ -102,6 +113,29 @@ const BuyerForm = ({ editId = null }) => {
       buyer_status: value,
     }));
   };
+  const handleCountryChange = (selectedCountry) => {
+    setFormData((prev) => ({
+      ...prev,
+      buyer_country: selectedCountry,
+    }));
+    console.log(selectedCountry, "selectedCountry");
+    const matched = portsData?.data?.find(
+      (item) => item.country_port == selectedCountry.country_port
+    );
+
+    if (matched) {
+      setFormData((prev) => ({
+        ...prev,
+        buyer_port: matched.country_port,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        buyer_port: "",
+      }));
+    }
+  };
+
   const handleSubmit = async () => {
     const requiredFields = [
       "buyer_sort",
@@ -138,13 +172,24 @@ const BuyerForm = ({ editId = null }) => {
       toast.error(error?.message || "Something went wrong");
     }
   };
+  const hasError = error || errorPort || errorCountry;
 
-  if (error || errorcountry || errorport)
-    return <ApiErrorPage onRetry={() => fetchData()} />;
+  const isLoading = loadingbuyer || loadingPort || loadingCountry;
 
+  if (hasError) {
+    return (
+      <ApiErrorPage
+        onRetry={() => {
+          if (error) fetchData();
+          if (errorPort) refetchPort();
+          if (errorCountry) refetchCountry();
+        }}
+      />
+    );
+  }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {(loadingbuyer || loadingcountry || loadingport) && <LoadingBar />}
+      {isLoading && <LoadingBar />}
       <DialogTrigger asChild>
         {isEdit ? (
           <EditBuyer onClick={() => setOpen(true)} />
@@ -199,6 +244,24 @@ const BuyerForm = ({ editId = null }) => {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
+              <Label>Country *</Label>
+              <Select
+                value={formData.buyer_country}
+                onValueChange={handleCountryChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryData?.data?.map((c, i) => (
+                    <SelectItem key={i} value={c.country_name}>
+                      {c.country_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Port *</Label>
               <Select
                 value={formData.buyer_port}
@@ -209,27 +272,8 @@ const BuyerForm = ({ editId = null }) => {
                 </SelectTrigger>
                 <SelectContent>
                   {portsData?.data?.map((p, i) => (
-                    <SelectItem key={i} value={p.portofLoading}>
-                      {p.portofLoading}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Country *</Label>
-              <Select
-                value={formData.buyer_country}
-                onValueChange={(v) => handleChange(null, "buyer_country", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countryData?.data?.map((c, i) => (
-                    <SelectItem key={i} value={c.country_name}>
-                      {c.country_name}
+                    <SelectItem key={i} value={p.country_port}>
+                      {p.country_port}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -1,19 +1,23 @@
 import ApiErrorPage from "@/components/api-error/api-error";
+import {
+  BranchCreate,
+  BranchEdit,
+} from "@/components/buttoncontrol/button-component";
 import DataTable from "@/components/common/data-table";
 import LoadingBar from "@/components/loader/loading-bar";
-import { BAG_API } from "@/constants/apiConstants";
-import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-
-import ToggleStatus from "@/components/common/status-toggle";
+import { BRANCH_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
+import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
-import BagTypeForm from "./bagtype-form";
+import { useNavigate } from "react-router-dom";
 
-const BagTypeList = () => {
+const BranchList = () => {
+  const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+
   const params = useMemo(
     () => ({
       page: pageIndex + 1,
@@ -22,41 +26,40 @@ const BagTypeList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-  const {
-    data: data,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetApiMutation({
-    url: BAG_API.getlist,
-    queryKey: ["bag-type-list", pageIndex],
+
+  const { data, isLoading, isError, refetch } = useGetApiMutation({
+    url: BRANCH_API.getlist,
+    queryKey: ["branch-list", pageIndex],
     params,
   });
-  const apiData = data?.data;
+
+  const apiData = data;
 
   const columns = [
-    {
-      header: "Bag Type",
-      accessorKey: "bagType",
-    },
+    { header: "Branch Code", accessorKey: "branch_short" },
+    { header: "Branch Name", accessorKey: "branch_name" },
+    { header: "GST", accessorKey: "branch_gst" },
     {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "branch_status",
       cell: ({ row }) => (
-        <ToggleStatus
-          initialStatus={row.original.bagType_status}
-          apiUrl={BAG_API.updateStatus(row.original.id)}
-          payloadKey="bagType_status"
-          onSuccess={refetch}
-        />
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            row.original.branch_status === "Active"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {row.original.branch_status}
+        </span>
       ),
     },
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div>
-          <BagTypeForm editId={row.original.id} />
-        </div>
+        <BranchEdit
+          onClick={() => navigate(`/master/branch/edit/${row.original.id}`)}
+        />
       ),
     },
   ];
@@ -66,13 +69,17 @@ const BagTypeList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
         data={apiData?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search bag..."
-        toolbarRight={<BagTypeForm />}
+        searchPlaceholder="Search branch..."
+        toolbarRight={
+          <BranchCreate
+            onClick={() => navigate("/master/branch/create")}
+            className="ml-2"
+          />
+        }
         serverPagination={{
           pageIndex,
           pageCount: apiData?.last_page ?? 1,
@@ -86,4 +93,4 @@ const BagTypeList = () => {
   );
 };
 
-export default BagTypeList;
+export default BranchList;

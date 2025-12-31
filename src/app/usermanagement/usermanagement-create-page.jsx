@@ -11,11 +11,11 @@ import { sidebarData } from "@/config/pages";
 import { TEAM_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { ContextPanel } from "@/lib/context-panel";
-import { Plus } from "lucide-react";
-import { useContext, useState, useMemo } from "react";
+import { Loader2 } from "lucide-react";
+import { useContext, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
 
 const CreatePage = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const CreatePage = () => {
 
   const [selectedPage, setSelectedPage] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
-  const [userIds, setUserIds] = useState("1,2,3,4");
+  const [userIds, setUserIds] = useState("1,2,3,4,5");
   const [status] = useState("Active");
 
   const { trigger, loading } = useApiMutation();
@@ -178,7 +178,11 @@ const CreatePage = () => {
 
         <div className="flex justify-end">
           <Button onClick={handleSubmit} disabled={!selectedPage || loading}>
-            <Plus className="w-4 h-4 mr-2" />
+            {loading && (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </>
+            )}
             {loading ? "Creating..." : "Create"}
           </Button>
         </div>

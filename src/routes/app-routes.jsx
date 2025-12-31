@@ -3,6 +3,7 @@ import Login from "@/app/auth/login";
 // import EditCompany from "@/app/company/edit-company";
 import BagTypeList from "@/app/bagtype/bagtype-list";
 import BankList from "@/app/bank/bank-list";
+import BranchList from "@/app/branch/branch-list";
 import BuyerList from "@/app/buyer/buyer-list";
 import ContainerSizeList from "@/app/containersize/containersize-list";
 import CountryList from "@/app/country/country-list";
@@ -14,13 +15,18 @@ import OrderTypeList from "@/app/ordertype/ordertype-list";
 import PaymentTermList from "@/app/payementterm/paymentterm-list";
 import PortofList from "@/app/portofloading/portofloading-list";
 import PreRecepitList from "@/app/prereceipts/prereceipts-list";
+import ProductList from "@/app/product/product-list";
+import SchemeList from "@/app/scheme/scheme-list";
 import Settings from "@/app/setting/setting";
+import ShipperList from "@/app/shipper/shipper-list";
+import StateList from "@/app/state/state-list";
 import CreateButton from "@/app/usermanagement/usermanagement-create-button";
 import CreatePage from "@/app/usermanagement/usermanagement-create-page";
 import ManagementDashboard from "@/app/usermanagement/usermanagement-dashboard";
 import UserManagementList from "@/app/usermanagement/usermanagement-list";
 import EditUserType from "@/app/usertype/usertype-edit";
 import UserTypeList from "@/app/usertype/usertype-list";
+import VesselList from "@/app/vessel/vessel-list";
 import Maintenance from "@/components/common/maintenance";
 import ErrorBoundary from "@/components/error-boundry/error-boundry";
 import ForgotPasswordForm from "@/components/forgot-password/forgot-password";
@@ -29,11 +35,11 @@ import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import AuthRoute from "./auth-route";
 import ProtectedRoute from "./protected-route";
-import ProductList from "@/app/product/product-list";
-import SchemeList from "@/app/scheme/scheme-list";
-import ShipperList from "@/app/shipper/shipper-list";
-import VesselList from "@/app/vessel/vessel-list";
-import StateList from "@/app/state/state-list";
+import BranchForm from "@/app/branch/branch-form";
+import ItemList from "@/app/item/item-list";
+import PrecarriageList from "@/app/precarriages/precarriages-list";
+import VendorForm from "@/app/vendor/vendor-form";
+import VendorList from "@/app/vendor/vendor-list";
 
 function AppRoutes() {
   return (
@@ -245,6 +251,39 @@ function AppRoutes() {
               </Suspense>
             }
           />
+          <Route
+            path="/master/branch"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <BranchList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/branch/create"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <BranchForm />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/branch/edit/:id"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <BranchForm />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/master/item"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ItemList />
+              </Suspense>
+            }
+          />
+
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -1,19 +1,24 @@
 import ApiErrorPage from "@/components/api-error/api-error";
+import {
+  VendorCreate,
+  VendorEdit,
+} from "@/components/buttoncontrol/button-component";
 import DataTable from "@/components/common/data-table";
-import LoadingBar from "@/components/loader/loading-bar";
-import { BAG_API } from "@/constants/apiConstants";
-import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-
 import ToggleStatus from "@/components/common/status-toggle";
+import LoadingBar from "@/components/loader/loading-bar";
+import { VENDOR_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
+import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
-import BagTypeForm from "./bagtype-form";
+import { useNavigate } from "react-router-dom";
 
-const BagTypeList = () => {
+const VendorList = () => {
+  const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+
   const params = useMemo(
     () => ({
       page: pageIndex + 1,
@@ -22,31 +27,29 @@ const BagTypeList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-  const {
-    data: data,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetApiMutation({
-    url: BAG_API.getlist,
-    queryKey: ["bag-type-list", pageIndex],
+
+  const { data, isLoading, isError, refetch } = useGetApiMutation({
+    url: VENDOR_API.getlist,
+    queryKey: ["vendor-list", pageIndex, debouncedSearch],
     params,
   });
-  const apiData = data?.data;
+
+  const apiData = data;
 
   const columns = [
-    {
-      header: "Bag Type",
-      accessorKey: "bagType",
-    },
+    { header: "Vendor Alias", accessorKey: "vendor_alias" },
+    { header: "Short Name", accessorKey: "vendor_short" },
+    { header: "Name", accessorKey: "vendor_name" },
+    { header: "City", accessorKey: "vendor_city" },
+    { header: "State", accessorKey: "vendor_state" },
     {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "vendor_status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.bagType_status}
+          initialStatus={row.original.vendor_status}
           apiUrl={BAG_API.updateStatus(row.original.id)}
-          payloadKey="bagType_status"
+          payloadKey="vendor_status"
           onSuccess={refetch}
         />
       ),
@@ -54,9 +57,9 @@ const BagTypeList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div>
-          <BagTypeForm editId={row.original.id} />
-        </div>
+        <VendorEdit
+          onClick={() => navigate(`/master/vendor/edit/${row.original.id}`)}
+        />
       ),
     },
   ];
@@ -66,13 +69,17 @@ const BagTypeList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
         data={apiData?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search bag..."
-        toolbarRight={<BagTypeForm />}
+        searchPlaceholder="Search vendor..."
+        toolbarRight={
+          <VendorCreate
+            onClick={() => navigate("/master/vendor/create")}
+            className="ml-2"
+          />
+        }
         serverPagination={{
           pageIndex,
           pageCount: apiData?.last_page ?? 1,
@@ -86,4 +93,4 @@ const BagTypeList = () => {
   );
 };
 
-export default BagTypeList;
+export default VendorList;

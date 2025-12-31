@@ -21,7 +21,7 @@ export default function CarouselButtons({ handleCarouselChange }) {
         onClick={() => handleCarouselChange("right")}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white transition-all flex items-center justify-center"
+        className="w-12 h-12 rounded-full bg-gradient-to-r from-accent/50 to-accent hover:from-accent hover:to-accent/50  text-white transition-all flex items-center justify-center"
       >
         <ArrowRight size={20} />
       </motion.button>

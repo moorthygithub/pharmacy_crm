@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
@@ -26,7 +26,7 @@ const CreateButton = () => {
   const [selectedPage, setSelectedPage] = useState("");
   const [selectedButton, setSelectedButton] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
-  const [userIds, setUserIds] = useState("1,2,3,4");
+  const [userIds, setUserIds] = useState("1,2,3,4,5");
   const status = "Active";
 
   const { trigger, loading } = useApiMutation();
@@ -231,7 +231,11 @@ const CreateButton = () => {
             onClick={handleSubmit}
             disabled={!selectedItems.length || loading}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            {loading && (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </>
+            )}
             {loading ? "Creating..." : "Create"}
           </Button>
         </div>

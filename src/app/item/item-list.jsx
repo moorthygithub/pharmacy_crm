@@ -1,19 +1,19 @@
 import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
-import LoadingBar from "@/components/loader/loading-bar";
-import { BAG_API } from "@/constants/apiConstants";
-import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-
 import ToggleStatus from "@/components/common/status-toggle";
+import LoadingBar from "@/components/loader/loading-bar";
+import { ITEMS_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
+import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
-import BagTypeForm from "./bagtype-form";
+import ItemForm from "./item-form";
 
-const BagTypeList = () => {
+const ItemList = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+
   const params = useMemo(
     () => ({
       page: pageIndex + 1,
@@ -22,31 +22,26 @@ const BagTypeList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-  const {
-    data: data,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetApiMutation({
-    url: BAG_API.getlist,
-    queryKey: ["bag-type-list", pageIndex],
+
+  const { data, isLoading, isError, refetch } = useGetApiMutation({
+    url: ITEMS_API.getlist,
+    queryKey: ["item-list", pageIndex],
     params,
   });
-  const apiData = data?.data;
 
   const columns = [
-    {
-      header: "Bag Type",
-      accessorKey: "bagType",
-    },
+    { header: "HSN Code", accessorKey: "item_hsn_code" },
+    { header: "Brand", accessorKey: "item_brand_name" },
+    { header: "Generic", accessorKey: "item_generic_name" },
+    { header: "Company", accessorKey: "item_company_name" },
+    { header: "GST %", accessorKey: "item_gst" },
     {
       header: "Status",
-      accessorKey: "status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.bagType_status}
-          apiUrl={BAG_API.updateStatus(row.original.id)}
-          payloadKey="bagType_status"
+          initialStatus={row.original.item_status}
+          apiUrl={ITEMS_API.updateStatus(row.original.id)}
+          payloadKey="item_status"
           onSuccess={refetch}
         />
       ),
@@ -54,9 +49,7 @@ const BagTypeList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div>
-          <BagTypeForm editId={row.original.id} />
-        </div>
+        <ItemForm editId={row.original.id} onSuccess={refetch} />
       ),
     },
   ];
@@ -66,17 +59,15 @@ const BagTypeList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
-        data={apiData?.data || []}
+        data={data?.data?.data || []}
         columns={columns}
-        pageSize={pageSize}
-        searchPlaceholder="Search bag..."
-        toolbarRight={<BagTypeForm />}
+        searchPlaceholder="Search item..."
+        toolbarRight={<ItemForm onSuccess={refetch} />}
         serverPagination={{
           pageIndex,
-          pageCount: apiData?.last_page ?? 1,
-          total: apiData?.total ?? 0,
+          pageCount: data?.last_page ?? 1,
+          total: data?.total ?? 0,
           onPageChange: setPageIndex,
           onPageSizeChange: setPageSize,
           onSearch: setSearch,
@@ -86,4 +77,4 @@ const BagTypeList = () => {
   );
 };
 
-export default BagTypeList;
+export default ItemList;
