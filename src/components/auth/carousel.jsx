@@ -25,7 +25,7 @@ export default function Carousel({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
-      className="hidden lg:flex lg:col-span-3 flex-col justify-between p-8 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-transparent border-l border-white/10 relative overflow-hidden"
+      className="hidden lg:flex lg:col-span-3 flex-col justify-between p-8 border-l border-white/10 relative overflow-hidden"
     >
       <motion.div
         initial={{ opacity: 0, y: -10 }}

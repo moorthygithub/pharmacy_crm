@@ -1,19 +1,19 @@
 import ApiErrorPage from "@/components/api-error/api-error";
 import DataTable from "@/components/common/data-table";
 import LoadingBar from "@/components/loader/loading-bar";
-import { BAG_API } from "@/constants/apiConstants";
-import { useGetApiMutation } from "@/hooks/useGetApiMutation";
-
-import ToggleStatus from "@/components/common/status-toggle";
 import useDebounce from "@/hooks/useDebounce";
+import { useGetApiMutation } from "@/hooks/useGetApiMutation";
+import { PRECARRIAGES_API } from "@/constants/apiConstants";
 import { useMemo, useState } from "react";
-import BagTypeForm from "./bagtype-form";
+import PrecarriageForm from "./precarriages-form";
+import ToggleStatus from "@/components/common/status-toggle";
 
-const BagTypeList = () => {
+const PrecarriageList = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+
   const params = useMemo(
     () => ({
       page: pageIndex + 1,
@@ -22,31 +22,22 @@ const BagTypeList = () => {
     }),
     [pageIndex, pageSize, debouncedSearch]
   );
-  const {
-    data: data,
-    isLoading,
-    isError,
-    refetch,
-  } = useGetApiMutation({
-    url: BAG_API.getlist,
-    queryKey: ["bag-type-list", pageIndex],
+
+  const { data, isLoading, isError, refetch } = useGetApiMutation({
+    url: PRECARRIAGES_API.getlist,
+    queryKey: ["precarriage-list", pageIndex],
     params,
   });
-  const apiData = data?.data;
 
   const columns = [
-    {
-      header: "Bag Type",
-      accessorKey: "bagType",
-    },
+    { header: "Precarriage Name", accessorKey: "precarriage_name" },
     {
       header: "Status",
-      accessorKey: "status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.bagType_status}
-          apiUrl={BAG_API.updateStatus(row.original.id)}
-          payloadKey="bagType_status"
+          initialStatus={row.original.precarriage_status}
+          apiUrl={PRECARRIAGES_API.updateStatus(row.original.id)}
+          payloadKey="precarriage_status"
           onSuccess={refetch}
         />
       ),
@@ -54,9 +45,7 @@ const BagTypeList = () => {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div>
-          <BagTypeForm editId={row.original.id} />
-        </div>
+        <PrecarriageForm editId={row.original.id} onSuccess={refetch} />
       ),
     },
   ];
@@ -66,17 +55,16 @@ const BagTypeList = () => {
   return (
     <>
       {isLoading && <LoadingBar />}
-
       <DataTable
-        data={apiData?.data || []}
+        data={data?.data?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search bag..."
-        toolbarRight={<BagTypeForm />}
+        searchPlaceholder="Search precarriage..."
+        toolbarRight={<PrecarriageForm onSuccess={refetch} />}
         serverPagination={{
           pageIndex,
-          pageCount: apiData?.last_page ?? 1,
-          total: apiData?.total ?? 0,
+          pageCount: data?.last_page ?? 1,
+          total: data?.total ?? 0,
           onPageChange: setPageIndex,
           onPageSizeChange: setPageSize,
           onSearch: setSearch,
@@ -86,4 +74,4 @@ const BagTypeList = () => {
   );
 };
 
-export default BagTypeList;
+export default PrecarriageList;

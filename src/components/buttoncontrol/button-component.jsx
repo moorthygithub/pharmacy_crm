@@ -838,7 +838,146 @@ export const ItemEdit = forwardRef(({ onClick, className }, ref) => {
 });
 
 ItemEdit.page = "Item";
+/////// MASTER – PrecarriageCreate
+export const PrecarriageCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
 
+  if (
+    !checkPermission(String(userId), "PrecarriageCreate", buttonPermissions)
+  ) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Pre Carriage
+    </Button>
+  );
+});
+
+PrecarriageCreate.page = "Pre Carriage";
+
+/////// MASTER – Item Edit
+export const PrecarriageEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PrecarriageEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+PrecarriageEdit.page = "Pre Carriage";
+/////// MASTER – Vendor
+export const VendorCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "VendorCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Vendor
+    </Button>
+  );
+});
+
+VendorCreate.page = "Vendor";
+
+/////// MASTER – Vendor
+export const VendorEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "VendorEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+VendorEdit.page = "Vendor";
+/////// MASTER – PurchaseCreate
+export const PurchaseCreate = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PurchaseCreate", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button ref={ref} variant="default" className={className} onClick={onClick}>
+      <SquarePlus className="h-4 w-4 mr-2" />
+      Purchase
+    </Button>
+  );
+});
+
+PurchaseCreate.page = "Purchase";
+
+/////// MASTER – Vendor
+export const PurchaseEdit = forwardRef(({ onClick, className }, ref) => {
+  const userId = useSelector((state) => state.auth.user?.id);
+  const buttonPermissions = useSelector(
+    (state) => state.permissions.buttonPermissions
+  );
+
+  if (!checkPermission(String(userId), "PurchaseEdit", buttonPermissions)) {
+    return null;
+  }
+
+  return (
+    <Button
+      ref={ref}
+      onClick={onClick}
+      className={className}
+      variant="ghost"
+      size="icon"
+    >
+      <Edit className="h-4 w-4 text-black" />
+    </Button>
+  );
+});
+
+PurchaseEdit.page = "Purchase";
 export default {
   BuyerCreate,
   EditBuyer,
@@ -874,6 +1013,10 @@ export default {
   StateEdit,
   BranchCreate,
   BranchEdit,
-  BranchCreate,
-  BranchEdit,
+  ItemCreate,
+  ItemEdit,
+  PrecarriageCreate,
+  PrecarriageEdit,
+  VendorCreate,
+  VendorEdit,
 };

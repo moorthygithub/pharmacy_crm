@@ -107,8 +107,28 @@ const NAVIGATION_CONFIG = [
         icon: Users,
       },
       {
+        title: "Company",
+        url: "/master/branch",
+        icon: Users,
+      },
+      {
         title: "State",
         url: "/master/state",
+        icon: Users,
+      },
+      {
+        title: "Item",
+        url: "/master/item",
+        icon: Users,
+      },
+      {
+        title: "Pre Carriage",
+        url: "/master/precarriage",
+        icon: Users,
+      },
+      {
+        title: "Vendor",
+        url: "/master/vendor",
         icon: Users,
       },
     ],

@@ -100,6 +100,9 @@ export const PAYMENTTERM_API = {
   updateById: (id) => `/paymentTerms/${id}`,
   updateStatus: (id) => `/paymentTermss/${id}/status`,
 };
+export const COUNTRYPORT_API = {
+  active: "activeCountrysPort",
+};
 export const PORT_API = {
   getlist: "/portofloading",
   create: "/portofloading",
@@ -148,10 +151,48 @@ export const VESSEL_API = {
   updateById: (id) => `/vessel/${id}`,
   updateStatus: (id) => `/vessels/${id}/status`,
 };
+export const BRANCH_API = {
+  getlist: "/panel-fetch-branch-list",
+  create: "/panel-create-branch",
+  getById: (id) => `/panel-fetch-branch-by-id/${id}`,
+  updateById: (id) => `/panel-update-branch/${id}`,
+};
 export const STATE_API = {
   getlist: "/panel-fetch-state-list",
   create: "/panel-create-state",
   active: "/panel-fetch-state",
   getById: (id) => `/panel-fetch-state-by-id/${id}`,
   updateById: (id) => `/panel-update-state/${id}`,
+};
+export const ITEMS_API = {
+  getlist: "/item",
+  create: "/item",
+  active: "/activeItems",
+  getById: (id) => `/item/${id}`,
+  updateById: (id) => `/item/${id}`,
+  updateStatus: (id) => `/items/${id}/status`,
+};
+export const PRECARRIAGES_API = {
+  getlist: "/precarriages",
+  create: "/precarriages",
+  active: "/activePrecarriages",
+  getById: (id) => `/precarriages/${id}`,
+  updateById: (id) => `/precarriages/${id}`,
+  updateStatus: (id) => `/precarriagess/${id}/status`,
+};
+export const VENDOR_API = {
+  getlist: "/vendor",
+  create: "/vendor",
+  active: "/activeVendors",
+  getById: (id) => `/vendor/${id}`,
+  updateById: (id) => `/vendor/${id}`,
+  updateStatus: (id) => `/vendors/${id}/status`,
+};
+export const PURCHASE_API = {
+  getlist: "/purchase",
+  create: "/purchase",
+  active: "/activePurchase",
+  getById: (id) => `/purchase/${id}`,
+  updateById: (id) => `/purchase/${id}`,
+  updateStatus: (id) => `/purchases/${id}/status`,
 };
