@@ -67,7 +67,6 @@ const VendorList = () => {
   ];
 
   if (isError) return <ApiErrorPage onRetry={refetch} />;
-  console.log(apiData?.data);
   return (
     <>
       {isLoading && <LoadingBar />}

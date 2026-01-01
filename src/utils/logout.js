@@ -19,21 +19,30 @@ const useAppLogout = () => {
       });
 
       if (res.code === 200) {
-        localStorage.clear();
+        //   localStorage.clear();
 
-        await persistor.flush();
-        dispatch(logout());
+        //   await persistor.flush();
+        //   dispatch(logout());
 
-        navigate("/", { replace: true });
+        //   navigate("/", { replace: true });
 
-        setTimeout(() => {
-          persistor.purge();
-        }, 300);
+        //   setTimeout(() => {
+        //     persistor.purge();
+        //   }, 300);
+        console.log("Logout");
       } else {
         toast.error("Failed to Logout");
       }
     } catch (error) {
       toast.error(error?.message || "Failed to Logout");
+    } finally {
+      localStorage.clear();
+
+      await persistor.flush();
+      dispatch(logout());
+      await persistor.purge();
+
+      navigate("/", { replace: true });
     }
   };
 

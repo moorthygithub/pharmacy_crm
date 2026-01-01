@@ -5,6 +5,7 @@ import {
   PurchaseEdit,
 } from "@/components/buttoncontrol/button-component";
 import DataTable from "@/components/common/data-table";
+import ToggleStatus from "@/components/common/status-toggle";
 import LoadingBar from "@/components/loader/loading-bar";
 import { PURCHASE_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
@@ -40,7 +41,18 @@ const PurchaseList = () => {
     { header: "Vendor", accessorKey: "vendor_name" },
     { header: "Bill Ref", accessorKey: "purchase_bill_ref" },
     { header: "Date", accessorKey: "purchase_date" },
-    { header: "Status", accessorKey: "purchase_status" },
+    {
+      header: "Status",
+      accessorKey: "vendpurchase_statusor_status",
+      cell: ({ row }) => (
+        <ToggleStatus
+          initialStatus={row.original.purchase_status}
+          apiUrl={PURCHASE_API.updateStatus(row.original.id)}
+          payloadKey="purchase_status"
+          onSuccess={refetch}
+        />
+      ),
+    },
     {
       header: "Actions",
       cell: ({ row }) => (
