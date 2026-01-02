@@ -42,6 +42,8 @@ import VendorForm from "@/app/vendor/vendor-form";
 import VendorList from "@/app/vendor/vendor-list";
 import PurchaseList from "@/app/purchase/purchase-list";
 import PurchaseForm from "@/app/purchase/purchase-form";
+import ContractList from "@/app/contract/contract-list";
+import ContractForm from "@/app/contract/contract-form";
 
 function AppRoutes() {
   return (
@@ -342,6 +344,30 @@ function AppRoutes() {
               </Suspense>
             }
           />
+          <Route
+            path="/contract"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ContractList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/contract/create"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ContractForm />
+              </Suspense>
+            }
+          />
+          {/* <Route
+            path="/contract/edit/:id"
+            element={
+              <Suspense fallback={<LoadingBar />}>
+                <ContractForm />
+              </Suspense>
+            }
+          /> */}
         </Route>
 
         <Route path="*" element={<NotFound />} />

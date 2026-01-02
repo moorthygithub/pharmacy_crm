@@ -1,3 +1,6 @@
+export const YEAR = {
+  year: "/panel-fetch-year",
+};
 export const LOGOUT = {
   logout: "/panel-logout",
 };
@@ -37,6 +40,7 @@ export const TEAM_API = {
 
 export const BUYER_LIST = {
   getlist: "/buyer",
+  active: "/activeBuyers",
   create: "/buyer",
   getById: (id) => `/buyer/${id}`,
   updateById: (id) => `/buyer/${id}`,
@@ -60,6 +64,7 @@ export const BANK_API = {
 export const CONTAINERSIZE_API = {
   getlist: "/containerSize",
   create: "/containerSize",
+  active: "/activeContainerSizes",
   getById: (id) => `/containerSize/${id}`,
   updateById: (id) => `/containerSize/${id}`,
   updateStatus: (id) => `/containerSizes/${id}/status`,
@@ -75,6 +80,7 @@ export const COUNTRY_API = {
 export const GRCODE_API = {
   getlist: "/grcode",
   create: "/grcode",
+  active: "/activeGrCodes",
   getById: (id) => `/grcode/${id}`,
   updateById: (id) => `/grcode/${id}`,
   updateStatus: (id) => `/grcodes/${id}/status`,
@@ -82,6 +88,7 @@ export const GRCODE_API = {
 export const MARKING_API = {
   getlist: "/marking",
   create: "/marking",
+  active: "/activeMarkings",
   getById: (id) => `/marking/${id}`,
   updateById: (id) => `/marking/${id}`,
   updateStatus: (id) => `/markings/${id}/status`,
@@ -96,6 +103,7 @@ export const ORDERTYPE_API = {
 export const PAYMENTTERM_API = {
   getlist: "/paymentTerms",
   create: "/paymentTerms",
+  active: "/activePaymentTermss",
   getById: (id) => `/paymentTerms/${id}`,
   updateById: (id) => `/paymentTerms/${id}`,
   updateStatus: (id) => `/paymentTermss/${id}/status`,
@@ -196,4 +204,14 @@ export const PURCHASE_API = {
   updateById: (id) => `/purchase/${id}`,
   updateStatus: (id) => `/purchases/${id}/status`,
   deleteSubs: (id) => `/deletepurchaseSub/${id}`,
+};
+export const CONTRACT_API = {
+  getlist: "/contract",
+  create: "/contract",
+  getContractNo: "/getContractNo",
+  checkContractRef: "/checkContractRef",
+  getById: (id) => `/contract/${id}`,
+  updateById: (id) => `/contract/${id}`,
+  updateStatus: (id) => `/contracts/${id}/status`,
+  deleteSubs: (id) => `/deletecontractSub/${id}`,
 };

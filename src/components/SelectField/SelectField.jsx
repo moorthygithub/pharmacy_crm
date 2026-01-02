@@ -15,9 +15,12 @@ const SelectField = ({
   optionKey,
   optionLabel,
   error,
+  required,
 }) => (
   <div>
-    <Label>{label} </Label>
+    <Label>
+      {label} {required ? "*" : ""}
+    </Label>
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder={`Select ${label ? label : "Value"}`} />

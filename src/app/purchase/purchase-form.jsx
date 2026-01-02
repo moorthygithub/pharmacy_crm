@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SUB_NUMBER_FIELDS = [
   "purchaseSub_qnty",
@@ -77,6 +78,7 @@ const PurchaseForm = () => {
   const navigate = useNavigate();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [subToDelete, setSubToDelete] = useState(null);
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState(INITIAL_STATE);
   const [errors, setErrors] = useState({});
@@ -199,6 +201,7 @@ const PurchaseForm = () => {
         navigate("/master/purchase");
         setFormData(INITIAL_STATE);
         setErrors({});
+        queryClient.invalidateQueries(["purchase-list"]);
       } else {
         toast.error(res.message || "Something went wrong");
       }
@@ -276,7 +279,8 @@ const PurchaseForm = () => {
       <Card className="p-4 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <SelectField
-            label="Branch *"
+            label="Branch "
+            required
             value={formData.branch_short}
             onChange={(v) => handleChange("branch_short", v)}
             options={branch.data?.data}
@@ -294,7 +298,8 @@ const PurchaseForm = () => {
           />
 
           <SelectField
-            label="Vendor *"
+            label="Vendor "
+            required
             value={String(formData.purchase_vendor_id)}
             onChange={(v) => handleChange("purchase_vendor_id", v)}
             options={vendor.data?.data}

@@ -30,6 +30,7 @@ export const sidebarData = {
     { name: "Pre Carriage", url: "/master/precarriage" },
     { name: "Vendor", url: "/master/vendor" },
     { name: "Purchase", url: "/master/purchase" },
+    { name: "Contract", url: "/contract" },
   ],
   userManagement: [
     { name: "User Management", url: "/userManagement" },
