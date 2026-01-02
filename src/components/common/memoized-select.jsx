@@ -1,4 +1,3 @@
-// File: components/ui/MemoizedSelect.jsx
 import React from "react";
 import ReactSelect from "react-select";
 

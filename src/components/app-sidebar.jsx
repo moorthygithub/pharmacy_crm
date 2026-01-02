@@ -131,9 +131,18 @@ const NAVIGATION_CONFIG = [
         url: "/master/vendor",
         icon: Users,
       },
+      {
+        title: "Purchase",
+        url: "/master/purchase",
+        icon: Users,
+      },
     ],
   },
-
+  {
+    title: "Contract",
+    url: "/contract",
+    icon: Users,
+  },
   {
     title: "User Management",
     url: "/userManagement",

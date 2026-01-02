@@ -1,19 +1,19 @@
 // PurchaseList.jsx
 import ApiErrorPage from "@/components/api-error/api-error";
 import {
-  PurchaseCreate,
-  PurchaseEdit,
+    ContractCreate,
+    ContractEdit,
 } from "@/components/buttoncontrol/button-component";
 import DataTable from "@/components/common/data-table";
 import ToggleStatus from "@/components/common/status-toggle";
 import LoadingBar from "@/components/loader/loading-bar";
-import { PURCHASE_API } from "@/constants/apiConstants";
+import { CONTRACT_API } from "@/constants/apiConstants";
 import useDebounce from "@/hooks/useDebounce";
 import { useGetApiMutation } from "@/hooks/useGetApiMutation";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const PurchaseList = () => {
+const ContractList = () => {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -30,34 +30,37 @@ const PurchaseList = () => {
   );
 
   const { data, isLoading, isError, refetch } = useGetApiMutation({
-    url: PURCHASE_API.getlist,
-    queryKey: ["purchase-list", pageIndex, debouncedSearch],
+    url: CONTRACT_API.getlist,
+    queryKey: ["contract-list", pageIndex, debouncedSearch],
     params,
   });
   const apiData = data;
 
   const columns = [
-    { header: "Branch", accessorKey: "branch_short" },
-    { header: "Vendor", accessorKey: "vendor_name" },
-    { header: "Bill Ref", accessorKey: "purchase_bill_ref" },
-    { header: "Date", accessorKey: "purchase_date" },
+    { header: "Date", accessorKey: "contract_date" },
+    { header: "Company", accessorKey: "branch_short" },
+    { header: "Contract No", accessorKey: "contract_no" },
+    { header: "Buyer Name", accessorKey: "contract_buyer" },
+    { header: "Consignee Name", accessorKey: "contract_consignee" },
     {
       header: "Status",
-      accessorKey: "vendpurchase_statusor_status",
+      accessorKey: "contract_status",
       cell: ({ row }) => (
         <ToggleStatus
-          initialStatus={row.original.purchase_status}
-          apiUrl={PURCHASE_API.updateStatus(row.original.id)}
-          payloadKey="purchase_status"
+          initialStatus={row.original.contract_status}
+          apiUrl={CONTRACT_API.updateStatus(row.original.id)}
+          payloadKey="contract_status"
           onSuccess={refetch}
+          activeValue="Open"
+          inactiveValue="Close"
         />
       ),
     },
     {
       header: "Actions",
       cell: ({ row }) => (
-        <PurchaseEdit
-          onClick={() => navigate(`/master/purchase/edit/${row.original.id}`)}
+        <ContractEdit
+          onClick={() => navigate(`/contract/edit/${row.original.id}`)}
         />
       ),
     },
@@ -72,9 +75,9 @@ const PurchaseList = () => {
         data={apiData?.data?.data || []}
         columns={columns}
         pageSize={pageSize}
-        searchPlaceholder="Search purchase..."
+        searchPlaceholder="Search contract..."
         toolbarRight={
-          <PurchaseCreate onClick={() => navigate("/master/purchase/create")} />
+          <ContractCreate onClick={() => navigate("/contract/create")} />
         }
         serverPagination={{
           pageIndex,
@@ -89,4 +92,4 @@ const PurchaseList = () => {
   );
 };
 
-export default PurchaseList;
+export default ContractList;

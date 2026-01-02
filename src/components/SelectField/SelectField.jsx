@@ -1,0 +1,40 @@
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const SelectField = ({
+  label,
+  value,
+  onChange,
+  options,
+  optionKey,
+  optionLabel,
+  error,
+  required,
+}) => (
+  <div>
+    <Label>
+      {label} {required ? "*" : ""}
+    </Label>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder={`Select ${label ? label : "Value"}`} />
+      </SelectTrigger>
+      <SelectContent>
+        {options?.map((o) => (
+          <SelectItem key={o[optionKey]} value={String(o[optionKey])}>
+            {o[optionLabel]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    {error && <p className="text-xs text-red-500">{error}</p>}
+  </div>
+);
+
+export default SelectField;
