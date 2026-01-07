@@ -29,7 +29,7 @@ export const sidebarData = {
     { name: "Item", url: "/master/item" },
     { name: "Pre Carriage", url: "/master/precarriage" },
     { name: "Vendor", url: "/master/vendor" },
-    { name: "Purchase", url: "/master/purchase" },
+    { name: "Purchase", url: "/purchase" },
     { name: "Contract", url: "/contract" },
     { name: "Invoice", url: "/invoice" },
     { name: "CartonBox", url: "/master/cartonbox" },

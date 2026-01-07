@@ -333,7 +333,7 @@ function AppRoutes() {
           />
 
           <Route
-            path="/master/purchase"
+            path="/purchase"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PurchaseList />
@@ -341,7 +341,7 @@ function AppRoutes() {
             }
           />
           <Route
-            path="/master/purchase/create"
+            path="/purchase/create"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PurchaseForm />
@@ -349,7 +349,7 @@ function AppRoutes() {
             }
           />
           <Route
-            path="/master/purchase/edit/:id"
+            path="/purchase/edit/:id"
             element={
               <Suspense fallback={<LoadingBar />}>
                 <PurchaseForm />

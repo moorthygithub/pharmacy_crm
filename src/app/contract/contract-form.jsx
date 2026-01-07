@@ -31,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { CONTRACT_API } from "@/constants/apiConstants";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -41,13 +42,13 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EMPTY_SUB = {
   id: "",
   contractSub_item_id: "",
   contractSub_qnty: "",
   contractSub_mrp: "",
+  contractSub_selling_rate: "",
   contractSub_item_gst: "",
   contractSub_batch_no: "",
   contractSub_manufacture_date: "",
@@ -126,6 +127,7 @@ const ContractForm = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [subToDelete, setSubToDelete] = useState(null);
   const [formData, setFormData] = useState(INITIAL_STATE);
+  const [availableQuantity, setAvailableQuantity] = useState({});
   const [contractNoOptions, setContractNoOptions] = useState([]);
   const [errors, setErrors] = useState({});
   const { trigger, loading } = useApiMutation();
@@ -309,6 +311,7 @@ const ContractForm = () => {
                 contractSub_item_id: String(s.contractSub_item_id) ?? "",
                 contractSub_qnty: s.contractSub_qnty ?? "",
                 contractSub_mrp: s.contractSub_mrp ?? "",
+                contractSub_selling_rate: s.contractSub_selling_rate ?? "",
                 contractSub_item_gst: s.contractSub_item_gst ?? "",
                 contractSub_batch_no: s.contractSub_batch_no ?? "",
                 contractSub_manufacture_date:
@@ -497,22 +500,9 @@ const ContractForm = () => {
       if (!row.contractSub_qnty) {
         newErrors[`subs.${idx}.contractSub_qnty`] = "Qty is required";
       }
-      if (!row.contractSub_mrp) {
-        newErrors[`subs.${idx}.contractSub_mrp`] = "Mrp is required";
-      }
-      if (!row.contractSub_item_gst) {
-        newErrors[`subs.${idx}.contractSub_item_gst`] = "Item Gst required";
-      }
-      if (!row.contractSub_batch_no) {
-        newErrors[`subs.${idx}.contractSub_batch_no`] = "Batch No required";
-      }
-      if (!row.contractSub_manufacture_date) {
-        newErrors[`subs.${idx}.contractSub_manufacture_date`] =
-          "Manuf Date is required";
-      }
-      if (!row.contractSub_expire_date) {
-        newErrors[`subs.${idx}.contractSub_expire_date`] =
-          "Expire Date is required";
+
+      if (!row.contractSub_selling_rate) {
+        newErrors[`subs.${idx}.contractSub_selling_rate`] = "Mrp is required";
       }
     });
     setErrors(newErrors);
@@ -576,12 +566,10 @@ const ContractForm = () => {
       const selectedItem = purchaseitemData?.data?.find(
         (item) => String(item.id) === String(value)
       );
-
-      subs[index].contractSub_manufacture_date =
-        selectedItem?.manufacture_date ?? "";
-      subs[index].contractSub_mrp = selectedItem?.mrp ?? "";
-      subs[index].contractSub_expire_date = selectedItem?.expire_date ?? "";
-      subs[index].contractSub_batch_no = selectedItem?.batch_no ?? "";
+      setAvailableQuantity((prev) => ({
+        ...prev,
+        [index]: selectedItem?.total_qnty ?? 0,
+      }));
       subs[index].contractSub_item_gst = selectedItem?.item_gst ?? "";
     }
 
@@ -1075,12 +1063,13 @@ const ContractForm = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[35%]">Item *</TableHead>
+                    <TableHead className="w-[25%]">Item *</TableHead>
                     <TableHead className="w-[15%]">Qty *</TableHead>
-                    <TableHead className="w-[15%]">MRP *</TableHead>
-                    <TableHead className="w-[15%]">Batch *</TableHead>
-                    <TableHead className="w-[15%]">Manufacture *</TableHead>
-                    <TableHead className="w-[15%]">Expire *</TableHead>
+                    <TableHead className="w-[15%]">Batch </TableHead>
+                    <TableHead className="w-[15%]">Manufacture </TableHead>
+                    <TableHead className="w-[10%]">Expire </TableHead>
+                    <TableHead className="w-[10%]">MRP </TableHead>
+                    <TableHead className="w-[15%]">Selling *</TableHead>
                     <TableHead className="w-[60px] text-center">
                       Action
                     </TableHead>
@@ -1119,23 +1108,12 @@ const ContractForm = () => {
                           }
                           error={errors[`subs.${idx}.contractSub_qnty`]}
                         />
-                      </TableCell>
-
-                      {/* MRP */}
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          value={row.contractSub_mrp ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(
-                              idx,
-                              "contractSub_mrp",
-                              v.replace(/[^0-9.]/g, "")
-                            )
-                          }
-                          readOnly
-                          error={errors[`subs.${idx}.contractSub_mrp`]}
-                        />
+                        {!isEdit && (
+                          <span className="font-medium text-[11px]">
+                            Available Quantity:{" "}
+                            <span>{availableQuantity[idx] ?? 0}</span>
+                          </span>
+                        )}
                       </TableCell>
 
                       <TableCell>
@@ -1145,8 +1123,6 @@ const ContractForm = () => {
                           onChange={(v) =>
                             handleSubChange(idx, "contractSub_batch_no", v)
                           }
-                          readOnly
-                          error={errors[`subs.${idx}.contractSub_batch_no`]}
                         />
                       </TableCell>
                       <TableCell>
@@ -1161,10 +1137,6 @@ const ContractForm = () => {
                               v
                             )
                           }
-                          readOnly
-                          error={
-                            errors[`subs.${idx}.contractSub_manufacture_date`]
-                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -1175,8 +1147,35 @@ const ContractForm = () => {
                           onChange={(v) =>
                             handleSubChange(idx, "contractSub_expire_date", v)
                           }
-                          readOnly
-                          error={errors[`subs.${idx}.contractSub_expire_date`]}
+                        />
+                      </TableCell>
+                      {/* MRP */}
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          value={row.contractSub_mrp ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(
+                              idx,
+                              "contractSub_mrp",
+                              v.replace(/[^0-9.]/g, "")
+                            )
+                          }
+                        />
+                      </TableCell>
+                      {/* MRP */}
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          value={row.contractSub_selling_rate ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(
+                              idx,
+                              "contractSub_selling_rate",
+                              v.replace(/[^0-9.]/g, "")
+                            )
+                          }
+                          error={errors[`subs.${idx}.contractSub_selling_rate`]}
                         />
                       </TableCell>
                       <TableCell className="text-center">

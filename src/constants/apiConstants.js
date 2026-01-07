@@ -202,6 +202,7 @@ export const PURCHASE_API = {
   getlist: "/purchase",
   create: "/purchase",
   active: "/activePurchaseItems",
+  activeother: "/activePurchaseItemsOther",
   getById: (id) => `/purchase/${id}`,
   updateById: (id) => `/purchase/${id}`,
   updateStatus: (id) => `/purchases/${id}/status`,

@@ -52,6 +52,7 @@ const EMPTY_SUB = {
   invoiceSub_batch_no: "",
   invoiceSub_manufacture_date: "",
   invoiceSub_expire_date: "",
+  invoiceSub_selling_rate: "",
 };
 
 const INITIAL_STATE = {
@@ -126,11 +127,17 @@ const InvoiceForm = () => {
   const [errors, setErrors] = useState({});
   const { trigger, loading } = useApiMutation();
   const { trigger: fetchRef, loading: refloading, referror } = useApiMutation();
+  const [batchOptionsByRow, setBatchOptionsByRow] = useState({});
+  const {
+    trigger: fetchConractRef,
+    loading: contractrefloading,
+    contractreferror,
+  } = useApiMutation();
   const { trigger: fetchData, loading: loadingData, error } = useApiMutation();
   const {
     trigger: Deletetrigger,
     loading: loadingdelete,
-    deleteerror,
+    error: deleteerror,
   } = useApiMutation();
 
   const master = useMasterQueries([
@@ -151,6 +158,7 @@ const InvoiceForm = () => {
     "contractref",
     "bank",
     "invoicestatus",
+    "activepurchaseother",
   ]);
 
   const {
@@ -253,6 +261,12 @@ const InvoiceForm = () => {
     error: invoicestatusError,
     refetch: refetchinvoicestatus,
   } = master.invoicestatus;
+  const {
+    data: activePurchaseItemOther,
+    loading: loadingPurchaseItemOther,
+    error: PurchaseItemOtherError,
+    refetch: refetchPurchaseItemOther,
+  } = master.activepurchaseother;
   useEffect(() => {
     if (!isEdit || !id) return;
 
@@ -333,6 +347,7 @@ const InvoiceForm = () => {
                 invoiceSub_manufacture_date:
                   s.invoiceSub_manufacture_date ?? "",
                 invoiceSub_expire_date: s.invoiceSub_expire_date ?? "",
+                invoiceSub_selling_rate: s.invoiceSub_selling_rate ?? "",
               }))
             : [{ ...EMPTY_SUB }],
       });
@@ -356,7 +371,7 @@ const InvoiceForm = () => {
     setFormData((p) => ({ ...p, [name]: value }));
 
     if (name === "contract_ref") {
-      const res = await trigger({
+      const res = await fetchConractRef({
         url: CONTRACT_API.getActiveContractRefwithData,
         method: "POST",
         data: { contract_ref: value },
@@ -373,7 +388,27 @@ const InvoiceForm = () => {
         ? [{ invoice_no: String(resdata.data) }]
         : [];
       setInvoiceNoOptions(options);
+      const subsFromContract =
+        data.subs?.length > 0
+          ? data.subs.map((s) => ({
+              id: "",
+              invoiceSub_item_id: String(s.contractSub_item_id),
+              invoiceSub_qnty: s.contractSub_qnty,
+              invoiceSub_selling_rate: s.contractSub_selling_rate,
+              invoiceSub_batch_no: "",
+            }))
+          : [{ ...EMPTY_SUB }];
+      const batchMap = {};
 
+      subsFromContract.forEach((sub, index) => {
+        batchMap[index] =
+          activePurchaseItemOther?.data?.filter(
+            (p) =>
+              String(p.purchaseSub_item_id) === String(sub.invoiceSub_item_id)
+          ) || [];
+      });
+
+      setBatchOptionsByRow(batchMap);
       setFormData((p) => ({
         ...p,
 
@@ -414,19 +449,7 @@ const InvoiceForm = () => {
         invoice_payment_terms: data.contract_payment_terms ?? "",
         invoice_remarks: data.contract_remarks ?? "",
 
-        subs:
-          data.subs?.length > 0
-            ? data.subs.map((s) => ({
-                id: "",
-                invoiceSub_item_id: String(s.contractSub_item_id),
-                invoiceSub_qnty: s.contractSub_qnty,
-                invoiceSub_mrp: s.contractSub_mrp,
-                invoiceSub_item_gst: s.contractSub_item_gst,
-                invoiceSub_batch_no: s.contractSub_batch_no,
-                invoiceSub_manufacture_date: s.contractSub_manufacture_date,
-                invoiceSub_expire_date: s.contractSub_expire_date,
-              }))
-            : [{ ...EMPTY_SUB }],
+        subs: subsFromContract,
       }));
 
       clearErrors(
@@ -654,6 +677,10 @@ const InvoiceForm = () => {
         newErrors[`subs.${idx}.invoiceSub_expire_date`] =
           "Expire Date is required";
       }
+      if (!row.invoiceSub_selling_rate) {
+        newErrors[`subs.${idx}.invoiceSub_selling_rate`] =
+          "Selling Price is required";
+      }
     });
     console.log(newErrors);
     setErrors(newErrors);
@@ -702,25 +729,50 @@ const InvoiceForm = () => {
   };
 
   const handleSubChange = (index, key, value) => {
-    const subs = [...formData.subs];
+    setFormData((prev) => {
+      const subs = [...prev.subs];
+      subs[index] = {
+        ...subs[index],
+        [key]: value,
+      };
 
-    subs[index][key] = value;
+      if (key === "invoiceSub_item_id") {
+        const selectedItem = itemData?.data?.find(
+          (item) => String(item.id) === String(value)
+        );
 
-    if (key === "invoiceSub_item_id") {
-      const selectedItem = itemData?.data?.find(
-        (item) => String(item.id) === String(value)
-      );
+        subs[index].invoiceSub_item_gst = selectedItem?.item_gst ?? "";
+        const relatedBatches =
+          activePurchaseItemOther?.data?.filter(
+            (p) => String(p.purchaseSub_item_id) === String(value)
+          ) || [];
 
-      subs[index].invoiceSub_item_gst = selectedItem?.item_gst ?? "";
-    }
-
-    setFormData((p) => ({
-      ...p,
-      subs,
-    }));
+        setBatchOptionsByRow((prevBatches) => ({
+          ...prevBatches,
+          [index]: relatedBatches,
+        }));
+        subs[index].invoiceSub_batch_no = "";
+      }
+      if (key === "invoiceSub_batch_no") {
+        const selectedBatch = activePurchaseItemOther?.data?.find(
+          (item) => String(item.id) === String(value)
+        );
+        subs[index].invoiceSub_manufacture_date =
+          selectedBatch?.purchaseSub_manufacture_date ?? "";
+        subs[index].invoiceSub_expire_date =
+          selectedBatch?.purchaseSub_expire_date ?? "";
+        subs[index].invoiceSub_mrp = selectedBatch?.purchaseSub_mrp ?? "";
+        subs[index].purchase_sub_id = selectedBatch?.purchaseSub_item_id ?? "";
+      }
+      return {
+        ...prev,
+        subs,
+      };
+    });
 
     clearErrors(`subs.${index}.${key}`);
   };
+
   const addSub = () => {
     setFormData((p) => ({
       ...p,
@@ -788,7 +840,9 @@ const InvoiceForm = () => {
     precarriageError ||
     prereceiptError ||
     contractrefError ||
-    invoicestatusError
+    invoicestatusError ||
+    contractreferror ||
+    PurchaseItemOtherError
   ) {
     return (
       <ApiErrorPage
@@ -809,6 +863,8 @@ const InvoiceForm = () => {
           refetchprecarriage();
           refetchcontractref();
           refetchinvoicestatus();
+          fetchConractRef();
+          refetchPurchaseItemOther();
         }}
       />
     );
@@ -833,7 +889,11 @@ const InvoiceForm = () => {
     loadingprereceipt ||
     loadingprecarriage ||
     loadingcontractref ||
-    loadinginvoicestatus;
+    loadinginvoicestatus ||
+    contractrefloading ||
+    loadingdelete ||
+    loadingPurchaseItemOther;
+
   return (
     <>
       {isLoading && <LoadingBar />}
@@ -1212,12 +1272,14 @@ const InvoiceForm = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[35%]">Item *</TableHead>
-                    <TableHead className="w-[15%]">Qty *</TableHead>
-                    <TableHead className="w-[15%]">MRP *</TableHead>
-                    <TableHead className="w-[15%]">Batch *</TableHead>
+                    <TableHead className="w-[25%]">Item *</TableHead>
+                    <TableHead className="w-[12%]">Batch *</TableHead>
+
                     <TableHead className="w-[15%]">Manufacture *</TableHead>
-                    <TableHead className="w-[15%]">Expire *</TableHead>
+                    <TableHead className="w-[13%]">Expire *</TableHead>
+                    <TableHead className="w-[10%]">Qty *</TableHead>
+                    <TableHead className="w-[12%]">MRP *</TableHead>
+                    <TableHead className="w-[13%]">Selling *</TableHead>
                     <TableHead className="w-[60px] text-center">
                       Action
                     </TableHead>
@@ -1242,6 +1304,49 @@ const InvoiceForm = () => {
                         />
                       </TableCell>
 
+                      <TableCell>
+                        <SelectField
+                          hideLabel
+                          value={row.invoiceSub_batch_no}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_batch_no", v)
+                          }
+                          options={batchOptionsByRow[idx] || []}
+                          optionKey="id"
+                          optionLabel="purchaseSub_batch_no"
+                          error={errors[`subs.${idx}.invoiceSub_batch_no`]}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          type="date"
+                          value={row.invoiceSub_manufacture_date ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(
+                              idx,
+                              "invoiceSub_manufacture_date",
+                              v
+                            )
+                          }
+                          error={
+                            errors[`subs.${idx}.invoiceSub_manufacture_date`]
+                          }
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          type="date"
+                          value={row.invoiceSub_expire_date ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_expire_date", v)
+                          }
+                          error={errors[`subs.${idx}.invoiceSub_expire_date`]}
+                        />
+                      </TableCell>
                       {/* QTY */}
                       <TableCell>
                         <Field
@@ -1273,66 +1378,17 @@ const InvoiceForm = () => {
                           error={errors[`subs.${idx}.invoiceSub_mrp`]}
                         />
                       </TableCell>
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          value={row.invoiceSub_selling_rate ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_selling_rate", v)
+                          }
+                          error={errors[`subs.${idx}.invoiceSub_selling_rate`]}
+                        />
+                      </TableCell>
 
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          value={row.invoiceSub_batch_no ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(idx, "invoiceSub_batch_no", v)
-                          }
-                          error={errors[`subs.${idx}.invoiceSub_batch_no`]}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          type="date"
-                          value={row.invoiceSub_manufacture_date ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(
-                              idx,
-                              "invoiceSub_manufacture_date",
-                              v
-                            )
-                          }
-                          error={
-                            errors[`subs.${idx}.invoiceSub_manufacture_date`]
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          type="date"
-                          value={row.invoiceSub_expire_date ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(idx, "invoiceSub_expire_date", v)
-                          }
-                          error={errors[`subs.${idx}.invoiceSub_expire_date`]}
-                        />
-                      </TableCell>
-                      {/* 
-                      {formData.subs.length > 1 && (
-                        <button
-                          type="button"
-                          className={`absolute top-0 left-1 rounded-full p-1 ${
-                            row.id
-                              ? "bg-red-600 text-white"
-                              : "bg-red-600 text-white"
-                          }`}
-                          onClick={() => {
-                            if (row.id) {
-                              setSubToDelete({ index: idx, id: row.id });
-                              setDeleteConfirmOpen(true);
-                            } else {
-                              removeSub(idx);
-                            }
-                          }}
-                        >
-                          {row.id ? <Trash2 size={14} /> : <X size={12} />}
-                        </button>
-                      )} */}
                       <TableCell className="text-center">
                         {formData.subs.length > 1 && (
                           <Button
