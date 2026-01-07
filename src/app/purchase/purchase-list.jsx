@@ -65,7 +65,7 @@ const PurchaseList = () => {
       header: "Actions",
       cell: ({ row }) => (
         <PurchaseEdit
-          onClick={() => navigate(`/master/purchase/edit/${row.original.id}`)}
+          onClick={() => navigate(`/purchase/edit/${row.original.id}`)}
         />
       ),
     },
@@ -82,7 +82,7 @@ const PurchaseList = () => {
         pageSize={pageSize}
         searchPlaceholder="Search purchase..."
         toolbarRight={
-          <PurchaseCreate onClick={() => navigate("/master/purchase/create")} />
+          <PurchaseCreate onClick={() => navigate("/purchase/create")} />
         }
         serverPagination={{
           pageIndex,

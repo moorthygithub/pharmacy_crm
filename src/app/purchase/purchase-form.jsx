@@ -204,7 +204,7 @@ const PurchaseForm = () => {
           res.message ??
             (isEdit ? "Updated successfully" : "Created successfully")
         );
-        navigate("/master/purchase");
+        navigate("/purchase");
         setFormData(INITIAL_STATE);
         setErrors({});
         queryClient.invalidateQueries(["purchase-list"]);

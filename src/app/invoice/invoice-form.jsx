@@ -52,6 +52,8 @@ const EMPTY_SUB = {
   invoiceSub_batch_no: "",
   invoiceSub_manufacture_date: "",
   invoiceSub_expire_date: "",
+  invoiceSub_selling_rate: "",
+  purchase_sub_id: "",
 };
 
 const INITIAL_STATE = {
@@ -126,11 +128,17 @@ const InvoiceForm = () => {
   const [errors, setErrors] = useState({});
   const { trigger, loading } = useApiMutation();
   const { trigger: fetchRef, loading: refloading, referror } = useApiMutation();
+  const [batchOptionsByRow, setBatchOptionsByRow] = useState({});
+  const {
+    trigger: fetchConractRef,
+    loading: contractrefloading,
+    contractreferror,
+  } = useApiMutation();
   const { trigger: fetchData, loading: loadingData, error } = useApiMutation();
   const {
     trigger: Deletetrigger,
     loading: loadingdelete,
-    deleteerror,
+    error: deleteerror,
   } = useApiMutation();
 
   const master = useMasterQueries([
@@ -151,6 +159,7 @@ const InvoiceForm = () => {
     "contractref",
     "bank",
     "invoicestatus",
+    "activepurchaseother",
   ]);
 
   const {
@@ -253,91 +262,114 @@ const InvoiceForm = () => {
     error: invoicestatusError,
     refetch: refetchinvoicestatus,
   } = master.invoicestatus;
+  const {
+    data: activePurchaseItemOther,
+    loading: loadingPurchaseItemOther,
+    error: PurchaseItemOtherError,
+    refetch: refetchPurchaseItemOther,
+  } = master.activepurchaseother;
   useEffect(() => {
-    if (!isEdit || !id) return;
+    if (!isEdit || !id || !activePurchaseItemOther?.data) return;
 
     (async () => {
-      const res = await fetchData({
-        url: INVOICE_API.getById(id),
-      });
+      try {
+        const res = await fetchData({ url: INVOICE_API.getById(id) });
+        const data = res?.data || {};
 
-      const data = res?.data || {};
-
-      setFormData({
-        ...INITIAL_STATE,
-
-        // ─── Branch ───────────────────────────────
-        branch_short: data.branch_short ?? "",
-        branch_name: data.branch_name ?? "",
-        branch_address: data.branch_address ?? "",
-
-        // ─── Dates ────────────────────────────────
-        contract_date: data.contract_date
-          ? moment(data.contract_date).format("YYYY-MM-DD")
-          : moment().format("YYYY-MM-DD"),
-        invoice_date: data.invoice_date
-          ? moment(data.invoice_date).format("YYYY-MM-DD")
-          : moment().format("YYYY-MM-DD"),
-
-        // ─── Invoice / Contract ───────────────────
-        invoice_no: data.invoice_no ?? "",
-        invoice_ref: data.invoice_ref ?? "",
-        contract_ref: data.contract_ref ?? "",
-        contract_pono: data.contract_pono ?? "",
-
-        // ─── Buyer ────────────────────────────────
-        invoice_buyer_id: data.invoice_buyer_id ?? "",
-        invoice_buyer: data.invoice_buyer ?? "",
-        invoice_buyer_add: data.invoice_buyer_add ?? "",
-
-        // ─── Consignee ────────────────────────────
-        invoice_consignee_id: data.invoice_consignee_id ?? "",
-        invoice_consignee: data.invoice_consignee ?? "",
-        invoice_consignee_add: data.invoice_consignee_add ?? "",
-        invoice_consig_bank: data.invoice_consig_bank ?? "",
-        invoice_consig_bank_address: data.invoice_consig_bank_address ?? "",
-
-        // ─── Shipment ─────────────────────────────
-        invoice_container_size: data.invoice_container_size ?? "",
-        invoice_product: data.invoice_product ?? "",
-        invoice_product_cust_des: data.invoice_product_cust_des ?? "",
-        invoice_gr_code: data.invoice_gr_code ?? "",
-        invoice_lut_code: data.invoice_lut_code ?? "",
-        invoice_vessel_flight_no: data.invoice_vessel_flight_no ?? "",
-
-        invoice_loading: data.invoice_loading ?? "",
-        invoice_prereceipts: data.invoice_prereceipts ?? "",
-        invoice_precarriage: data.invoice_precarriage ?? "",
-
-        invoice_destination_port: data.invoice_destination_port ?? "",
-        invoice_discharge: data.invoice_discharge ?? "",
-        invoice_cif: data.invoice_cif ?? "",
-        invoice_destination_country: data.invoice_destination_country ?? "",
-
-        // ─── Payment ──────────────────────────────
-        invoice_dollar_rate: data.invoice_dollar_rate ?? "",
-        invoice_payment_terms: data.invoice_payment_terms ?? "",
-        invoice_remarks: data.invoice_remarks ?? "",
-        invoice_status: data.invoice_status ?? "Open",
-
-        subs:
+        const subsFromInvoice =
           Array.isArray(data.subs) && data.subs.length > 0
             ? data.subs.map((s) => ({
-                ...EMPTY_SUB,
                 id: s.id ?? "",
+                invoiceSub_ref: s.invoiceSub_ref ?? "",
                 invoiceSub_item_id: String(s.invoiceSub_item_id ?? ""),
+                purchase_sub_id: s.purchase_sub_id ?? "",
                 invoiceSub_qnty: s.invoiceSub_qnty ?? "",
                 invoiceSub_mrp: s.invoiceSub_mrp ?? "",
                 invoiceSub_item_gst: s.invoiceSub_item_gst ?? "",
-                invoiceSub_batch_no: s.invoiceSub_batch_no ?? "",
+                // invoiceSub_batch_no: s.invoiceSub_batch_no ?? "",
                 invoiceSub_manufacture_date:
                   s.invoiceSub_manufacture_date ?? "",
                 invoiceSub_expire_date: s.invoiceSub_expire_date ?? "",
+                invoiceSub_selling_rate: s.invoiceSub_selling_rate ?? "",
+                item_hsn_code: s.item_hsn_code ?? "",
+                item_brand_name: s.item_brand_name ?? "",
+                item_generic_name: s.item_generic_name ?? "",
+                item_company_name: s.item_company_name ?? "",
               }))
-            : [{ ...EMPTY_SUB }],
-      });
+            : [{ ...EMPTY_SUB }];
+
+        const batchMap = {};
+
+        subsFromInvoice.forEach((sub, idx) => {
+          const relatedBatches =
+            activePurchaseItemOther?.data?.filter(
+              (p) => String(p.id) === String(sub.purchase_sub_id)
+            ) || [];
+
+          batchMap[idx] = relatedBatches;
+
+          const batchIndex = relatedBatches.findIndex(
+            (p) => String(p.id) === String(sub.purchase_sub_id)
+          );
+
+          if (batchIndex !== -1) {
+            sub.invoiceSub_batch_no = String(relatedBatches[batchIndex].id);
+          } else {
+            sub.invoiceSub_batch_no = "";
+          }
+
+        });
+
+        setBatchOptionsByRow(batchMap);
+
+        setFormData({
+          ...INITIAL_STATE,
+          branch_short: data.branch_short ?? "",
+          branch_name: data.branch_name ?? "",
+          branch_address: data.branch_address ?? "",
+          contract_date: data.contract_date
+            ? moment(data.contract_date).format("YYYY-MM-DD")
+            : moment().format("YYYY-MM-DD"),
+          invoice_date: data.invoice_date
+            ? moment(data.invoice_date).format("YYYY-MM-DD")
+            : moment().format("YYYY-MM-DD"),
+          invoice_no: data.invoice_no ?? "",
+          invoice_ref: data.invoice_ref ?? "",
+          contract_ref: data.contract_ref ?? "",
+          contract_pono: data.contract_pono ?? "",
+          invoice_buyer_id: data.invoice_buyer_id ?? "",
+          invoice_buyer: data.invoice_buyer ?? "",
+          invoice_buyer_add: data.invoice_buyer_add ?? "",
+          invoice_consignee_id: data.invoice_consignee_id ?? "",
+          invoice_consignee: data.invoice_consignee ?? "",
+          invoice_consignee_add: data.invoice_consignee_add ?? "",
+          invoice_consig_bank: data.invoice_consig_bank ?? "",
+          invoice_consig_bank_address: data.invoice_consig_bank_address ?? "",
+          invoice_container_size: data.invoice_container_size ?? "",
+          invoice_product: data.invoice_product ?? "",
+          invoice_product_cust_des: data.invoice_product_cust_des ?? "",
+          invoice_gr_code: data.invoice_gr_code ?? "",
+          invoice_lut_code: data.invoice_lut_code ?? "",
+          invoice_vessel_flight_no: data.invoice_vessel_flight_no ?? "",
+          invoice_loading: data.invoice_loading ?? "",
+          invoice_prereceipts: data.invoice_prereceipts ?? "",
+          invoice_precarriage: data.invoice_precarriage ?? "",
+          invoice_destination_port: data.invoice_destination_port ?? "",
+          invoice_discharge: data.invoice_discharge ?? "",
+          invoice_cif: data.invoice_cif ?? "",
+          invoice_destination_country: data.invoice_destination_country ?? "",
+          invoice_dollar_rate: data.invoice_dollar_rate ?? "",
+          invoice_payment_terms: data.invoice_payment_terms ?? "",
+          invoice_remarks: data.invoice_remarks ?? "",
+          invoice_status: data.invoice_status ?? "Open",
+          subs: subsFromInvoice,
+        });
+      } catch (err) {
+        console.error("Failed to fetch invoice data:", err);
+        toast.error(err.message || "Failed to fetch invoice data");
+      }
     })();
-  }, [id, isEdit]);
+  }, [id, isEdit, activePurchaseItemOther?.data]);
 
   const clearErrors = (...keys) => {
     setErrors((prev) => {
@@ -356,7 +388,7 @@ const InvoiceForm = () => {
     setFormData((p) => ({ ...p, [name]: value }));
 
     if (name === "contract_ref") {
-      const res = await trigger({
+      const res = await fetchConractRef({
         url: CONTRACT_API.getActiveContractRefwithData,
         method: "POST",
         data: { contract_ref: value },
@@ -373,7 +405,27 @@ const InvoiceForm = () => {
         ? [{ invoice_no: String(resdata.data) }]
         : [];
       setInvoiceNoOptions(options);
+      const subsFromContract =
+        data.subs?.length > 0
+          ? data.subs.map((s) => ({
+              id: "",
+              invoiceSub_item_id: String(s.contractSub_item_id),
+              invoiceSub_qnty: s.contractSub_qnty,
+              invoiceSub_selling_rate: s.contractSub_selling_rate,
+              invoiceSub_item_gst: s.contractSub_item_gst,
+            }))
+          : [{ ...EMPTY_SUB }];
+      const batchMap = {};
 
+      subsFromContract.forEach((sub, index) => {
+        batchMap[index] =
+          activePurchaseItemOther?.data?.filter(
+            (p) =>
+              String(p.purchaseSub_item_id) == String(sub.invoiceSub_item_id)
+          ) || [];
+      });
+
+      setBatchOptionsByRow(batchMap);
       setFormData((p) => ({
         ...p,
 
@@ -414,19 +466,7 @@ const InvoiceForm = () => {
         invoice_payment_terms: data.contract_payment_terms ?? "",
         invoice_remarks: data.contract_remarks ?? "",
 
-        subs:
-          data.subs?.length > 0
-            ? data.subs.map((s) => ({
-                id: "",
-                invoiceSub_item_id: String(s.contractSub_item_id),
-                invoiceSub_qnty: s.contractSub_qnty,
-                invoiceSub_mrp: s.contractSub_mrp,
-                invoiceSub_item_gst: s.contractSub_item_gst,
-                invoiceSub_batch_no: s.contractSub_batch_no,
-                invoiceSub_manufacture_date: s.contractSub_manufacture_date,
-                invoiceSub_expire_date: s.contractSub_expire_date,
-              }))
-            : [{ ...EMPTY_SUB }],
+        subs: subsFromContract,
       }));
 
       clearErrors(
@@ -458,7 +498,7 @@ const InvoiceForm = () => {
       const ref = selectedBranch
         ? `${selectedBranch.branch_name_short}/${
             formData.buyer_sort ? formData.buyer_sort : ""
-          }/${yearData?.data?.current_year}/${formData.invoice_no}`
+          }${yearData?.data?.current_year}${formData.invoice_no}`
         : "";
       setInvoiceNoOptions(options);
 
@@ -470,16 +510,8 @@ const InvoiceForm = () => {
         invoice_loading: selectedBranch?.branch_port_of_loading || "",
         invoice_no: "",
         invoice_ref: ref,
-        // contract_ref: ref,
-        // contract_pono: ref,
       }));
-      clearErrors(
-        "branch_short",
-        "invoice_loading",
-        "invoice_no"
-        // "contract_ref",
-        // "contract_pono"
-      );
+      clearErrors("branch_short", "invoice_loading", "invoice_no");
       return;
     }
 
@@ -494,7 +526,7 @@ const InvoiceForm = () => {
         (b) => b.branch_short == formData.branch_short
       );
       const ref = branch
-        ? `${branch.branch_name_short}/${selectedBuyer.buyer_sort}/${yearData?.data?.current_year}/${formData.invoice_no}`
+        ? `${branch.branch_name_short}/${selectedBuyer.buyer_sort}${yearData?.data?.current_year}${formData.invoice_no}`
         : "";
       const validPort = countryPortData?.data?.some(
         (p) => p.country_port === selectedBuyer.buyer_port
@@ -508,15 +540,10 @@ const InvoiceForm = () => {
         invoice_buyer: value,
         invoice_buyer_id: selectedBuyer.id,
         invoice_buyer_add: selectedBuyer.buyer_address,
-        // invoice_consignee: selectedBuyer.buyer_name,
-        // invoice_consignee_add: selectedBuyer.buyer_address,
-        // invoice_consignee_id: selectedBuyer.id,
         invoice_destination_country: validCountry
           ? selectedBuyer.buyer_country
           : "",
         invoice_ref: ref,
-        // contract_ref: ref,
-        // contract_pono: ref,
         invoice_destination_port: destinationPort,
         invoice_discharge: destinationPort,
         invoice_cif: destinationPort,
@@ -525,10 +552,6 @@ const InvoiceForm = () => {
 
       if (validCountry) {
         clearErrors("invoice_destination_country");
-      }
-      if (ref) {
-        // clearErrors("contract_ref", "contract_pono");
-        // clearErrors("contract_pono");
       }
 
       if (destinationPort) {
@@ -604,15 +627,13 @@ const InvoiceForm = () => {
 
       const ref =
         branch && buyer
-          ? `${branch.branch_name_short}/${buyer.buyer_sort}${yearData?.data?.current_year}/${value}`
+          ? `${branch.branch_name_short}/${buyer.buyer_sort}${yearData?.data?.current_year}${value}`
           : "";
 
       setFormData((p) => ({
         ...p,
         invoice_no: value,
         invoice_ref: ref,
-        // contract_ref: ref,
-        // contract_pono: ref,
       }));
       clearErrors("invoice_no", "invoice_ref");
     }
@@ -653,6 +674,10 @@ const InvoiceForm = () => {
       if (!row.invoiceSub_expire_date) {
         newErrors[`subs.${idx}.invoiceSub_expire_date`] =
           "Expire Date is required";
+      }
+      if (!row.invoiceSub_selling_rate) {
+        newErrors[`subs.${idx}.invoiceSub_selling_rate`] =
+          "Selling Price is required";
       }
     });
     console.log(newErrors);
@@ -702,25 +727,60 @@ const InvoiceForm = () => {
   };
 
   const handleSubChange = (index, key, value) => {
-    const subs = [...formData.subs];
+    setFormData((prev) => {
+      const subs = [...prev.subs];
+      subs[index] = {
+        ...subs[index],
+        [key]: value,
+      };
 
-    subs[index][key] = value;
+      if (key === "invoiceSub_item_id") {
+        const selectedItem = itemData?.data?.find(
+          (item) => String(item.id) === String(value)
+        );
 
-    if (key === "invoiceSub_item_id") {
-      const selectedItem = itemData?.data?.find(
-        (item) => String(item.id) === String(value)
+        subs[index].invoiceSub_item_gst = selectedItem?.item_gst ?? "";
+        const relatedBatches =
+          activePurchaseItemOther?.data?.filter(
+            (p) => String(p.purchaseSub_item_id) === String(value)
+          ) || [];
+
+        setBatchOptionsByRow((prevBatches) => ({
+          ...prevBatches,
+          [index]: relatedBatches,
+        }));
+        subs[index].invoiceSub_batch_no = "";
+      }
+      if (key === "invoiceSub_batch_no") {
+        const selectedBatch = activePurchaseItemOther?.data?.find(
+          (item) => String(item.id) === String(value)
+        );
+        subs[index].invoiceSub_manufacture_date =
+          selectedBatch?.purchaseSub_manufacture_date ?? "";
+        subs[index].invoiceSub_expire_date =
+          selectedBatch?.purchaseSub_expire_date ?? "";
+        subs[index].invoiceSub_mrp = selectedBatch?.purchaseSub_mrp ?? "";
+        subs[index].purchase_sub_id =
+        selectedBatch?.purchaseSub_item_id ?? "";
+      }
+      return {
+        ...prev,
+        subs,
+      };
+    });
+
+    if (key === "invoiceSub_batch_no") {
+      clearErrors(
+        `subs.${index}.invoiceSub_batch_no`,
+        `subs.${index}.invoiceSub_manufacture_date`,
+        `subs.${index}.invoiceSub_expire_date`,
+        `subs.${index}.invoiceSub_mrp`
       );
-
-      subs[index].invoiceSub_item_gst = selectedItem?.item_gst ?? "";
+    } else {
+      clearErrors(`subs.${index}.${key}`);
     }
-
-    setFormData((p) => ({
-      ...p,
-      subs,
-    }));
-
-    clearErrors(`subs.${index}.${key}`);
   };
+
   const addSub = () => {
     setFormData((p) => ({
       ...p,
@@ -788,7 +848,9 @@ const InvoiceForm = () => {
     precarriageError ||
     prereceiptError ||
     contractrefError ||
-    invoicestatusError
+    invoicestatusError ||
+    contractreferror ||
+    PurchaseItemOtherError
   ) {
     return (
       <ApiErrorPage
@@ -809,6 +871,8 @@ const InvoiceForm = () => {
           refetchprecarriage();
           refetchcontractref();
           refetchinvoicestatus();
+          fetchConractRef();
+          refetchPurchaseItemOther();
         }}
       />
     );
@@ -833,7 +897,11 @@ const InvoiceForm = () => {
     loadingprereceipt ||
     loadingprecarriage ||
     loadingcontractref ||
-    loadinginvoicestatus;
+    loadinginvoicestatus ||
+    contractrefloading ||
+    loadingdelete ||
+    loadingPurchaseItemOther;
+
   return (
     <>
       {isLoading && <LoadingBar />}
@@ -1161,7 +1229,7 @@ const InvoiceForm = () => {
                       </SelectTrigger>
 
                       <SelectContent>
-                        {invoiceStatusData.data.map((item) => (
+                        {invoiceStatusData?.data?.map((item) => (
                           <SelectItem
                             key={item.invoice_status}
                             value={item.invoice_status}
@@ -1212,12 +1280,14 @@ const InvoiceForm = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[35%]">Item *</TableHead>
-                    <TableHead className="w-[15%]">Qty *</TableHead>
-                    <TableHead className="w-[15%]">MRP *</TableHead>
-                    <TableHead className="w-[15%]">Batch *</TableHead>
+                    <TableHead className="w-[25%]">Item *</TableHead>
+                    <TableHead className="w-[12%]">Batch *</TableHead>
+
                     <TableHead className="w-[15%]">Manufacture *</TableHead>
-                    <TableHead className="w-[15%]">Expire *</TableHead>
+                    <TableHead className="w-[13%]">Expire *</TableHead>
+                    <TableHead className="w-[10%]">Qty *</TableHead>
+                    <TableHead className="w-[12%]">MRP *</TableHead>
+                    <TableHead className="w-[13%]">Selling *</TableHead>
                     <TableHead className="w-[60px] text-center">
                       Action
                     </TableHead>
@@ -1242,6 +1312,49 @@ const InvoiceForm = () => {
                         />
                       </TableCell>
 
+                      <TableCell>
+                        <SelectField
+                          hideLabel
+                          value={row.invoiceSub_batch_no}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_batch_no", v)
+                          }
+                          options={batchOptionsByRow[idx] || []}
+                          optionKey="id"
+                          optionLabel="purchaseSub_batch_no"
+                          error={errors[`subs.${idx}.invoiceSub_batch_no`]}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          type="date"
+                          value={row.invoiceSub_manufacture_date ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(
+                              idx,
+                              "invoiceSub_manufacture_date",
+                              v
+                            )
+                          }
+                          error={
+                            errors[`subs.${idx}.invoiceSub_manufacture_date`]
+                          }
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          type="date"
+                          value={row.invoiceSub_expire_date ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_expire_date", v)
+                          }
+                          error={errors[`subs.${idx}.invoiceSub_expire_date`]}
+                        />
+                      </TableCell>
                       {/* QTY */}
                       <TableCell>
                         <Field
@@ -1273,66 +1386,17 @@ const InvoiceForm = () => {
                           error={errors[`subs.${idx}.invoiceSub_mrp`]}
                         />
                       </TableCell>
+                      <TableCell>
+                        <Field
+                          hideLabel
+                          value={row.invoiceSub_selling_rate ?? ""}
+                          onChange={(v) =>
+                            handleSubChange(idx, "invoiceSub_selling_rate", v)
+                          }
+                          error={errors[`subs.${idx}.invoiceSub_selling_rate`]}
+                        />
+                      </TableCell>
 
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          value={row.invoiceSub_batch_no ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(idx, "invoiceSub_batch_no", v)
-                          }
-                          error={errors[`subs.${idx}.invoiceSub_batch_no`]}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          type="date"
-                          value={row.invoiceSub_manufacture_date ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(
-                              idx,
-                              "invoiceSub_manufacture_date",
-                              v
-                            )
-                          }
-                          error={
-                            errors[`subs.${idx}.invoiceSub_manufacture_date`]
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Field
-                          hideLabel
-                          type="date"
-                          value={row.invoiceSub_expire_date ?? ""}
-                          onChange={(v) =>
-                            handleSubChange(idx, "invoiceSub_expire_date", v)
-                          }
-                          error={errors[`subs.${idx}.invoiceSub_expire_date`]}
-                        />
-                      </TableCell>
-                      {/* 
-                      {formData.subs.length > 1 && (
-                        <button
-                          type="button"
-                          className={`absolute top-0 left-1 rounded-full p-1 ${
-                            row.id
-                              ? "bg-red-600 text-white"
-                              : "bg-red-600 text-white"
-                          }`}
-                          onClick={() => {
-                            if (row.id) {
-                              setSubToDelete({ index: idx, id: row.id });
-                              setDeleteConfirmOpen(true);
-                            } else {
-                              removeSub(idx);
-                            }
-                          }}
-                        >
-                          {row.id ? <Trash2 size={14} /> : <X size={12} />}
-                        </button>
-                      )} */}
                       <TableCell className="text-center">
                         {formData.subs.length > 1 && (
                           <Button

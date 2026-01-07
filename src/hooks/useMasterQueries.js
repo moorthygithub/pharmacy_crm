@@ -99,6 +99,10 @@ const MASTER_APIS = {
     url: PURCHASE_API.active,
     queryKey: ["purchaseitem-active"],
   },
+  activepurchaseother: {
+    url: PURCHASE_API.activeother,
+    queryKey: ["activepurchaseother-active"],
+  },
 
   year: {
     url: YEAR.year,
